@@ -14,5 +14,7 @@
   "hora extra|horas extras": "banco de horas",
   "placa nao lida|nao leu a placa|ocr nao leu|camera nao leu": "OCR leitura placa",
   "peso diferente|peso errado|pesou diferente": "divergência peso balança",
-  "chamado|suporte de ti|help ?desk": "Central de Serviços chamado"
+  "chamado|suporte de ti|help ?desk": "Central de Serviços chamado",
+  "causou|causa|motivo|por que (caiu|aconteceu|parou)": "causa raiz",
+  "o que aprendemos|licoes|o que mudou depois": "lições aprendidas ações corretivas"
 }

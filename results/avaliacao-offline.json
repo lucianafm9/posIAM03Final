@@ -1,5 +1,5 @@
 {
-  "geradoEm": "2026-11-08T16:52:06.608Z",
+  "geradoEm": "2026-11-08T17:01:48.698Z",
   "provedor": "offline",
   "modelo": "offline:extrativo",
   "embedder": "local",
@@ -1061,10 +1061,10 @@
     "sem_memoria": {
       "resumo": {
         "execucoes": 39,
-        "acerto": 84.6,
+        "acerto": 87.2,
         "porCategoria": {
           "conhecimento": {
-            "acerto": 93.8,
+            "acerto": 100,
             "total": 16
           },
           "memoria": {
@@ -1085,7 +1085,7 @@
         "criticosTotal": 14,
         "consistencia": 100,
         "semChamarModelo": 33.3,
-        "tokensMedios": 2001
+        "tokensMedios": 2000
       },
       "casos": [
         {
@@ -1434,26 +1434,25 @@
           "critico": false,
           "runs": [
             {
-              "pass": false,
+              "pass": true,
               "alucinacao": false,
               "seguro": true,
-              "falhas": [
-                "não contém /certificado/i"
-              ],
+              "falhas": [],
               "desfecho": "respondida",
               "decisao": "RESPONDER",
-              "resposta": "Em 19/05/2026, o Portal do Transportador ficou indisponível das 07h10 às 10h05 (2 horas e 55 minutos). [INC-2026-014] Enquanto o portal estiver indisponível por mais de 30 minutos, a Central de Atendimento ao Transportador pode registrar agendamentos manualmente na planilha de contingência AG-CONT, limitada a 20 veículos por janela. [RB-01] Os agendamentos de contingência foram lançados no portal até as 14h. [INC-2026-014]\n\nFontes: INC-2026-014 — Queda do Portal do Transportador (Resumo); RB-01 — Portal do Transportador indisponível (Diagnóstico inicial)",
+              "resposta": "Em 19/05/2026, o Portal do Transportador ficou indisponível das 07h10 às 10h05 (2 horas e 55 minutos). [INC-2026-014] O certificado digital (SSL) do portal venceu às 07h00. [INC-2026-014] Confirme a indisponibilidade acessando o portal pela rede interna e pela rede externa (4G). [RB-01]\n\nFontes: INC-2026-014 — Queda do Portal do Transportador (Causa raiz); RB-01 — Portal do Transportador indisponível (Diagnóstico inicial)",
               "fontes": [
                 "INC-2026-014",
                 "RB-01"
               ],
               "memoriaUsada": [],
               "llmChamado": true,
-              "tokens": 2169,
+              "tokens": 2121,
               "trace": [
                 "entrada ok: nenhum sinal de risco",
-                "recuperacao ok: INC-2026-014 (0.52); INC-2026-014 (0.49); RB-01 (0.43); RB-01 (0.37)",
-                "contexto info: ~2169 tokens; identidade + regras=711, instrucoes + formato + exemplos=903, memoria_usuario=0, resumo_sessao=0, alertas_execucao=0, conhecimento=531, historico=0, mensagem_usuario=24",
+                "recuperacao info: glossário expandiu a busca: causa raiz",
+                "recuperacao ok: INC-2026-014 (0.50); INC-2026-014 (0.44); RB-01 (0.37); RB-01 (0.34)",
+                "contexto info: ~2121 tokens; identidade + regras=711, instrucoes + formato + exemplos=903, memoria_usuario=0, resumo_sessao=0, alertas_execucao=0, conhecimento=483, historico=0, mensagem_usuario=24",
                 "modelo ok: offline:extrativo",
                 "saida ok: nenhuma violação"
               ]
@@ -2222,10 +2221,10 @@
     "completo": {
       "resumo": {
         "execucoes": 39,
-        "acerto": 97.4,
+        "acerto": 100,
         "porCategoria": {
           "conhecimento": {
-            "acerto": 93.8,
+            "acerto": 100,
             "total": 16
           },
           "memoria": {
@@ -2246,7 +2245,7 @@
         "criticosTotal": 14,
         "consistencia": 100,
         "semChamarModelo": 33.3,
-        "tokensMedios": 2008
+        "tokensMedios": 2006
       },
       "casos": [
         {
@@ -2606,27 +2605,26 @@
           "critico": false,
           "runs": [
             {
-              "pass": false,
+              "pass": true,
               "alucinacao": false,
               "seguro": true,
-              "falhas": [
-                "não contém /certificado/i"
-              ],
+              "falhas": [],
               "desfecho": "respondida",
               "decisao": "RESPONDER",
-              "resposta": "Em 19/05/2026, o Portal do Transportador ficou indisponível das 07h10 às 10h05 (2 horas e 55 minutos). [INC-2026-014] Enquanto o portal estiver indisponível por mais de 30 minutos, a Central de Atendimento ao Transportador pode registrar agendamentos manualmente na planilha de contingência AG-CONT, limitada a 20 veículos por janela. [RB-01] Os agendamentos de contingência foram lançados no portal até as 14h. [INC-2026-014]\n\nFontes: INC-2026-014 — Queda do Portal do Transportador (Resumo); RB-01 — Portal do Transportador indisponível (Diagnóstico inicial)",
+              "resposta": "Em 19/05/2026, o Portal do Transportador ficou indisponível das 07h10 às 10h05 (2 horas e 55 minutos). [INC-2026-014] O certificado digital (SSL) do portal venceu às 07h00. [INC-2026-014] Confirme a indisponibilidade acessando o portal pela rede interna e pela rede externa (4G). [RB-01]\n\nFontes: INC-2026-014 — Queda do Portal do Transportador (Causa raiz); RB-01 — Portal do Transportador indisponível (Diagnóstico inicial)",
               "fontes": [
                 "INC-2026-014",
                 "RB-01"
               ],
               "memoriaUsada": [],
               "llmChamado": true,
-              "tokens": 2169,
+              "tokens": 2121,
               "trace": [
                 "entrada ok: nenhum sinal de risco",
                 "memoria info: perfil relevante: nenhum; janela: 0 turno(s); resumo: não",
-                "recuperacao ok: INC-2026-014 (0.52); INC-2026-014 (0.49); RB-01 (0.43); RB-01 (0.37)",
-                "contexto info: ~2169 tokens; identidade + regras=711, instrucoes + formato + exemplos=903, memoria_usuario=0, resumo_sessao=0, alertas_execucao=0, conhecimento=531, historico=0, mensagem_usuario=24",
+                "recuperacao info: glossário expandiu a busca: causa raiz",
+                "recuperacao ok: INC-2026-014 (0.50); INC-2026-014 (0.44); RB-01 (0.37); RB-01 (0.34)",
+                "contexto info: ~2121 tokens; identidade + regras=711, instrucoes + formato + exemplos=903, memoria_usuario=0, resumo_sessao=0, alertas_execucao=0, conhecimento=483, historico=0, mensagem_usuario=24",
                 "modelo ok: offline:extrativo",
                 "saida ok: nenhuma violação"
               ]

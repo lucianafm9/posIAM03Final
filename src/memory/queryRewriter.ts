@@ -6,7 +6,7 @@ import { normalize, terms } from "../shared/text.ts";
  * junta a pergunta anterior do usuário. A pergunta enviada ao modelo continua sendo a original.
  */
 const CONTINUATION = /^(e|e se|e no|e na|e nos|e nas|e para|e pra|e quanto|e quando|e o|e a|e os|e as|mas e|nesse caso|neste caso|e depois|e se eu|e em)\b/;
-const ANAPHORA = /\b(isso|disso|nisso|nesse|nessa|desse|dessa|esse prazo|essa regra|ele|ela|o mesmo|a mesma)\b/;
+const ANAPHORA = /\b(isso|disso|nisso|nesse|nessa|desse|dessa|daquele|daquela|naquele|naquela|aquele|aquela|esse prazo|essa regra|ele|ela|o mesmo|a mesma)\b/;
 
 export type ContextualQuery = { query: string; usouHistorico: boolean; motivo?: string };
 

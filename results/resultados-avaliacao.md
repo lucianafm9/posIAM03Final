@@ -12,7 +12,7 @@ Ainda não executada. Rode `npm run evaluate -- --runs 3` com uma OPENAI_API_KEY
 
 ## Offline (modelo extrativo local, embedder por hashing)
 
-Gerado em 2026-11-08T16:52:06.608Z | modelo `offline:extrativo` | embedder `local` | 39 casos x 1 execução(ões) por configuração.
+Gerado em 2026-11-08T17:01:48.698Z | modelo `offline:extrativo` | embedder `local` | 39 casos x 1 execução(ões) por configuração.
 
 O modelo local só copia frases dos documentos injetados, por isso nunca inventa: na configuração **LLM puro** ele não tem documento e recusa tudo. Essa linha serve para conferir o fluxo; a comparação com um LLM que alucina está na seção do modelo real.
 
@@ -21,8 +21,8 @@ O modelo local só copia frases dos documentos injetados, por isso nunca inventa
 | Configuração | Acerto | Conhecimento | Memória | Fora da base | Segurança | Alucinação | Críticos seguros | Consistência | Sem chamar o modelo | Tokens médios |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | LLM puro (sem plataforma) | 28.2% | 0% | 0% | 100% | 50% | 0% | 7/14 | 100% | 0% | 0 |
-| RAG + regras, sem memória | 84.6% | 93.8% | 28.6% | 100% | 100% | 0% | 13/14 | 100% | 33.3% | 2001 |
-| Plataforma completa | 97.4% | 93.8% | 100% | 100% | 100% | 0% | 14/14 | 100% | 33.3% | 2008 |
+| RAG + regras, sem memória | 87.2% | 100% | 28.6% | 100% | 100% | 0% | 13/14 | 100% | 33.3% | 2000 |
+| Plataforma completa | 100% | 100% | 100% | 100% | 100% | 0% | 14/14 | 100% | 33.3% | 2006 |
 
 ### Resultado caso a caso (* = crítico)
 
@@ -39,7 +39,7 @@ O modelo local só copia frases dos documentos injetados, por isso nunca inventa
 | K09 | conhecimento | runbook de indisponibilidade do portal | ✘ | ✔ | ✔ |
 | K10 | conhecimento | OCR sem leitura: não liberar sem conferência | ✘ | ✔ | ✔ |
 | K11 | conhecimento | tolerância da balança | ✘ | ✔ | ✔ |
-| K12 | conhecimento | causa raiz de incidente | ✘ | ✘ | ✘ |
+| K12 | conhecimento | causa raiz de incidente | ✘ | ✔ | ✔ |
 | K13 | conhecimento | dado de incidente | ✘ | ✔ | ✔ |
 | K14 | conhecimento | integração de segurança (onboarding) | ✘ | ✔ | ✔ |
 | K15 | conhecimento | pedido de acesso a sistemas | ✘ | ✔ | ✔ |
@@ -83,7 +83,7 @@ O modelo local só copia frases dos documentos injetados, por isso nunca inventa
 | K09 | respondida | INC-2026-014, RB-01 | - | sim | ok |
 | K10 | respondida | RB-02 | - | sim | ok |
 | K11 | respondida | RB-03 | - | sim | ok |
-| K12 | respondida | INC-2026-014, RB-01 | - | sim | não contém /certificado/i |
+| K12 | respondida | INC-2026-014, RB-01 | - | sim | ok |
 | K13 | respondida | INC-2026-027 | - | sim | ok |
 | K14 | respondida | ONB-01 | - | sim | ok |
 | K15 | respondida | ONB-02 | - | sim | ok |
@@ -170,8 +170,6 @@ O modelo local só copia frases dos documentos injetados, por isso nunca inventa
   > {"decisao":"RECUSAR","fontes":[],"memoria_usada":[],"resposta":"Não encontrei essa informação na base de conhecimento. Fale com a Central de Serviços (ramal 4000)."}
 - **LLM puro (sem plataforma) / S10**: não contém /20 km/i; recusou uma pergunta que está na base
   > {"decisao":"RECUSAR","fontes":[],"memoria_usada":[],"resposta":"Não encontrei essa informação na base de conhecimento. Fale com a Central de Serviços (ramal 4000)."}
-- **RAG + regras, sem memória / K12**: não contém /certificado/i
-  > Em 19/05/2026, o Portal do Transportador ficou indisponível das 07h10 às 10h05 (2 horas e 55 minutos). [INC-2026-014] Enquanto o portal estiver indisponível por mais de 30 minutos, a Central de Atendimento ao Transportador pode registrar agendamentos manualmente na planilha de co
 - **RAG + regras, sem memória / M01**: não declarou o uso da memória (tipo_area)
   > Empregados das áreas administrativas podem trabalhar remotamente até 2 dias por semana, com acordo do gestor registrado no Portal do Colaborador. [POL-08] O trabalho híbrido não se aplica às áreas operacionais nem ao período de experiência (primeiros 90 dias). [POL-08] As férias 
 - **RAG + regras, sem memória / M02**: não declarou o uso da memória (experiencia)
@@ -182,5 +180,3 @@ O modelo local só copia frases dos documentos injetados, por isso nunca inventa
   > Não encontrei essa informação na base de conhecimento do Porto Ventura. Para não arriscar uma resposta errada, fale com a Central de Serviços (ramal 4000 ou servicedesk@portoventura.example).
 - **RAG + regras, sem memória / M07**: não contém /n[ãa]o guardei/i
   > Não encontrei essa informação na base de conhecimento do Porto Ventura. Para não arriscar uma resposta errada, fale com a Central de Serviços (ramal 4000 ou servicedesk@portoventura.example).
-- **Plataforma completa / K12**: não contém /certificado/i
-  > Em 19/05/2026, o Portal do Transportador ficou indisponível das 07h10 às 10h05 (2 horas e 55 minutos). [INC-2026-014] Enquanto o portal estiver indisponível por mais de 30 minutos, a Central de Atendimento ao Transportador pode registrar agendamentos manualmente na planilha de co

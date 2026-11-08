@@ -134,6 +134,7 @@ export async function answer(userId: string, sessionId: string, message: string,
   }
   if (intent === "apagar_memoria") {
     const removed = deps.memory.forget(userId);
+    deps.memory.startSession(userId, sessionId); // a conversa continua numa sessão vazia, sem histórico
     trace.add("memoria", "info", `perfil apagado (${removed} fato(s)) e sessões encerradas`, "R09");
     return { resposta: APPROVED.memoriaApagada, decisao: "RESPONDER", desfecho: "memoria", fontes: [], memoria, llmChamado: false, trace: trace.steps };
   }
