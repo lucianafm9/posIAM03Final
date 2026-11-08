@@ -1,0 +1,32 @@
+{
+  "name": "pos-ia-m03-capstone-ventura-assist",
+  "version": "1.0.0",
+  "description": "Capstone do módulo 3 (Pós em IA): plataforma de contexto AI-first com contexto modular, memória, camada de regras, RAG e testes de comportamento para um terminal portuário fictício.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning --env-file-if-exists=.env src/interfaces/cli.ts",
+    "serve": "node --disable-warning=ExperimentalWarning --env-file-if-exists=.env src/interfaces/http.ts",
+    "ingest": "node --disable-warning=ExperimentalWarning --env-file-if-exists=.env src/knowledge/runIngest.ts",
+    "debug": "node --disable-warning=ExperimentalWarning --env-file-if-exists=.env src/knowledge/ragDebug.ts",
+    "contexto": "node --disable-warning=ExperimentalWarning src/demo/showContext.ts",
+    "demo": "node --disable-warning=ExperimentalWarning src/demo/runDemo.ts",
+    "evaluate": "node --disable-warning=ExperimentalWarning --env-file-if-exists=.env src/evaluation/runEvaluation.ts",
+    "evaluate:offline": "node --disable-warning=ExperimentalWarning src/evaluation/runEvaluation.ts --offline",
+    "report": "node --disable-warning=ExperimentalWarning src/evaluation/report.ts",
+    "test": "node --disable-warning=ExperimentalWarning --test \"tests/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit",
+    "env:setup": "node -e \"require('fs').copyFileSync('.env.example', '.env')\""
+  },
+  "dependencies": {
+    "openai": "^6.49.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  },
+  "license": "ISC"
+}

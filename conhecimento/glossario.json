@@ -1,0 +1,18 @@
+{
+  "_descricao": "Glossário do domínio: termos que os colaboradores usam -> termos que aparecem nos documentos. Usado para expandir a consulta de busca (não entra no contexto do modelo).",
+  "de casa|home office|remoto|remotamente|teletrabalho|trabalhar fora": "trabalho híbrido remotamente",
+  "atraso|atrasado|atrasou|chegar depois|chegou depois": "tolerância atrasos",
+  "chegar antes|adiantado|antecipad": "chegadas antecipadas",
+  "fora do ar|caiu|nao abre|nao carrega|indisponivel|erro 503": "indisponível",
+  "esqueci (a |minha )?senha|trocar (a |minha )?senha|senha expirou": "senha troca autoatendimento",
+  "armazenagem gratis|sem cobranca|free time": "free time armazenagem",
+  "cracha": "credencial",
+  "epis?\\b|equipamentos? de protecao": "EPI obrigatório",
+  "catraca nao libera|catraca bloqueou|nao passa na catraca": "credencial bloqueada catraca",
+  "novato|recem-contratad|primeiro dia|comecei agora|sou nov": "primeiro dia onboarding",
+  "plano de saude|vale-refeicao|vale refeicao": "benefícios",
+  "hora extra|horas extras": "banco de horas",
+  "placa nao lida|nao leu a placa|ocr nao leu|camera nao leu": "OCR leitura placa",
+  "peso diferente|peso errado|pesou diferente": "divergência peso balança",
+  "chamado|suporte de ti|help ?desk": "Central de Serviços chamado"
+}
