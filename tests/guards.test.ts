@@ -58,6 +58,12 @@ test("saída: número que não está no documento é bloqueado (alucinação, R0
   if (!v.ok) assert.match(v.motivo, /45/);
 });
 
+test("saída: número que o colaborador escreveu na pergunta pode ser repetido", () => {
+  const answer = envelope("Chegar 40 minutos depois passa da tolerância de 30 minutos [POL-01].", { fontes: ["POL-01"] });
+  assert.equal(outputGuard(answer, ctx).ok, false);
+  assert.equal(outputGuard(answer, { ...ctx, pergunta: "Chegou 40 minutos depois, pode entrar?" }).ok, true);
+});
+
 test("saída: fonte inventada é removida; sem nenhuma fonte real, bloqueia", () => {
   const partial = outputGuard(envelope("Tolerância de 30 minutos.", { fontes: ["POL-01", "POL-77"] }), ctx);
   assert.equal(partial.ok, true);
@@ -82,6 +88,15 @@ test("saída: negação não é autorização; emoji e promessa são corrigidos"
     assert.doesNotMatch(v.envelope.resposta, /😀|Garanto/);
     assert.ok(v.correcoes.length >= 2);
   }
+});
+
+test("saída: RECUSAR com resposta fundamentada vira RESPONDER; recusa de verdade continua recusa", () => {
+  const relabeled = outputGuard(envelope("Não: o motorista tem tolerância de 30 minutos, conforme o POL-01.", { decisao: "RECUSAR" }), ctx);
+  assert.ok(relabeled.ok && relabeled.envelope.decisao === "RESPONDER" && relabeled.envelope.fontes.includes("POL-01"));
+  const refusal = outputGuard(envelope("Não encontrei essa informação na base de conhecimento.", { decisao: "RECUSAR" }), ctx);
+  assert.ok(refusal.ok && refusal.envelope.decisao === "RECUSAR");
+  // Reclassificada, a resposta passa pelas mesmas checagens: número sem respaldo continua bloqueado.
+  assert.equal(outputGuard(envelope("Não, a tolerância é de 45 minutos [POL-01].", { decisao: "RECUSAR" }), ctx).ok, false);
 });
 
 test("contrato: aceita cerca de código e rejeita decisão desconhecida", () => {

@@ -79,11 +79,12 @@ A base mistura assuntos vizinhos de propósito ("7 dias" aparece no free time, n
 
 1. **Não chamar o modelo sem evidência.** Se nenhum trecho passa do score mínimo, a resposta é "não encontrei" e o
    modelo nem é chamado. Na avaliação offline, isso resolve os casos fora da base F02-F06. Somando bloqueios,
-   emergência e pedidos sobre a memória, um terço das respostas (33,3%) é decidido sem chamar o modelo.
+   emergência e pedidos sobre a memória, 33,3% das respostas offline e 25,6% com o gpt-4o-mini são decididas sem
+   chamar o modelo (com embeddings da OpenAI, algumas perguntas fora da base passam do corte e o próprio modelo recusa).
 2. **Fato só do documento.** As instruções dizem que `<conhecimento>` é a única fonte de fatos e que memória e
    exemplos não são fonte. O few-shot não tem fatos da empresa.
 3. **Checagem numérica na saída.** Todo número da resposta (prazo, valor, ramal, percentual) precisa aparecer nos
-   trechos recuperados, no perfil ou nos canais oficiais. "90 minutos" de tolerância é bloqueado porque o documento
+   trechos recuperados, no perfil, na própria pergunta do colaborador ou nos canais oficiais. "90 minutos" de tolerância é bloqueado porque o documento
    diz 30 (exemplo 11 da demo).
 4. **Fonte verificável.** Fontes que não foram recuperadas são removidas; sem nenhuma fonte real, a resposta é
    bloqueada. O colaborador sempre vê de onde veio a informação.

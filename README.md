@@ -77,7 +77,7 @@ Edite o `.env` criado e troque o placeholder `OPENAI_API_KEY=OPENAI_API_KEY` pel
 | `npm run evaluate:offline` | 39 casos x 3 configurações (ablação); salva `results/avaliacao-offline.json` | Não |
 | `npm run evaluate -- --runs 3` | Igual, com gpt-4o-mini, 3 execuções por caso e juiz LLM; salva `results/avaliacao-openai.json` | Sim |
 | `npm run report` | Gera `results/resultados-avaliacao.md` a partir dos JSONs | Não |
-| `npm test` | 51 testes, incluindo os 39 casos de comportamento como portão de regressão | Não |
+| `npm test` | 53 testes, incluindo os 39 casos de comportamento como portão de regressão | Não |
 | `npm run typecheck` | TypeScript estrito | Não |
 
 ## Exemplos de funcionamento
@@ -145,18 +145,25 @@ Ventura: Se há pessoa ferida, vazamento, fogo ou risco imediato, acione agora o
 
 ## Resultados da avaliação
 
-39 casos (16 de conhecimento, 7 de memória, 6 fora da base, 10 de segurança; 14 críticos), três configurações:
+39 casos (16 de conhecimento, 7 de memória, 6 fora da base, 10 de segurança; 14 críticos), três configurações,
+**gpt-4o-mini** + `text-embedding-3-small`, **3 execuções por caso** (351 respostas) e juiz LLM na plataforma completa:
 
-| Configuração | Acerto | Conhecimento | Memória | Fora da base | Segurança | Alucinação | Críticos seguros |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| LLM puro (sem plataforma) | 28,2% | 0% | 0% | 100% | 50% | 0% | 7/14 |
-| RAG + regras, sem memória | 87,2% | 100% | 28,6% | 100% | 100% | 0% | 13/14 |
-| **Plataforma completa** | **100%** | **100%** | **100%** | **100%** | **100%** | **0%** | **14/14** |
+| Configuração | Acerto | Conhecimento | Memória | Fora da base | Segurança | Alucinação | Críticas seguras | Juiz |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| LLM puro (sem plataforma) | 23,1% | 18,8% | 0% | 16,7% | 50% | 12,8% | 18/42 | - |
+| RAG + regras, sem memória | 87,2% | 100% | 28,6% | 100% | 100% | 0% | 39/42 | - |
+| **Plataforma completa** | **97,4%** | **100%** | **85,7%** | **100%** | **100%** | **0%** | **42/42** | **94%** |
 
-Execução **offline** (modelo extrativo local, que por construção não inventa; por isso o "LLM puro" offline recusa em
-vez de alucinar; com LLM real, o D04 mediu 60% de alucinação sem contexto). A rodada com o **gpt-4o-mini** (3 execuções
-por caso + juiz LLM) está pronta em `npm run evaluate -- --runs 3`; não foi executada nesta entrega porque a chave da
-API expirou. Análise completa, achados e limitações: [docs/06-relatorio-avaliacao.md](docs/06-relatorio-avaliacao.md).
+Consistência de **100%** nas três configurações (mesmo resultado e desfecho nas 3 execuções).
+
+**Antes e depois.** A primeira rodada (v1) teve 84,6% de acerto: era segura, mas recusava 5 perguntas que a base
+respondia, porque o modelo copiava o exemplo de "não encontrei" do few-shot e confundia "a resposta é não" com
+`RECUSAR`. A v2 corrigiu só os módulos de contexto e uma regra da guarda de saída: o acerto em conhecimento subiu de
+75% para 100%, sem afrouxar nenhuma barreira. A única falha restante (M04) é um fato de perfil lembrado de outra
+sessão que chega ao contexto, mas que o modelo não aplica.
+
+Offline (modelo extrativo local, sem chave): completo 100%, sem memória 87,2%; roda a cada `npm test`.
+Análise completa, achados e limitações: [docs/06-relatorio-avaliacao.md](docs/06-relatorio-avaliacao.md).
 
 ## Critérios de aceitação e evidências
 
@@ -164,12 +171,12 @@ API expirou. Análise completa, achados e limitações: [docs/06-relatorio-avali
 |---|---|
 | **Arquitetura** clara e modular | 9 camadas com responsabilidade única ([arquitetura](docs/02-arquitetura.md)); dependências verificadas por teste ([`architecture.test.ts`](tests/architecture.test.ts)) |
 | Separação de responsabilidades | regras como dados, sem conhecer prompt ou pipeline; memória e conhecimento em bancos separados; composição só em `runtime.ts` |
-| **Comportamento** consistente | 33,3% das respostas decididas por código (mensagens aprovadas); contrato JSON; consistência medida por execuções repetidas |
-| Comportamento controlado | 10 regras versionadas, críticas com 2+ pontos de enforcement; 14/14 críticos seguros; trace por resposta |
-| **Memória** funcional | 3 níveis (trabalho, sessão, longo prazo); categoria memória 28,6% → 100% com a memória ligada |
-| Memória relevante | seleção de fatos por assunto, com motivo no trace; o perfil muda a regra aplicada (M01, M02, M04) |
-| **Conhecimento** utilizado corretamente | 16/16 perguntas da base com a fonte certa, nos 4 tipos de documento |
-| Conhecimento reduz alucinação | 0% de alucinação; não chama o modelo sem evidência; checagem numérica; base protegida contra adulteração (S07) |
+| **Comportamento** consistente | 100% de consistência em 3 execuções por caso com o modelo real; 25,6% das respostas decididas por código (mensagens aprovadas); contrato JSON sem nenhuma quebra em 348 chamadas |
+| Comportamento controlado | 10 regras versionadas, críticas com 2+ pontos de enforcement; 42/42 execuções críticas seguras (contra 18/42 sem a plataforma); trace por resposta |
+| **Memória** funcional | 3 níveis (trabalho, sessão, longo prazo); categoria memória 28,6% → 85,7% com a memória ligada |
+| Memória relevante | seleção de fatos por assunto, com motivo no trace; o perfil muda a regra aplicada (M01, M02); limite documentado (M04) |
+| **Conhecimento** utilizado corretamente | 16/16 perguntas da base certas e com a fonte certa, nas 3 execuções, nos 4 tipos de documento |
+| Conhecimento reduz alucinação | 12,8% de alucinação sem a plataforma → 0% com ela; não chama o modelo sem evidência; checagem numérica; base protegida contra adulteração (S07) |
 | **Engenharia**: estrutura reutilizável | domínio trocado só por arquivos de conteúdo ([como reutilizar](docs/03-estrutura-de-contexto.md#como-reutilizar-em-outro-domínio)); `LlmClient` e `Embedder` trocáveis |
 | Documentação clara | 8 documentos, diagramas Mermaid, exemplos executáveis, este README |
 | Entregáveis pedidos | arquitetura e diagrama ([2](docs/02-arquitetura.md)), estrutura de contexto ([3](docs/03-estrutura-de-contexto.md)), casos de uso ([8](docs/08-casos-de-uso.md)), testes (`npm test` + [39 casos](src/evaluation/cases.ts)), demonstração (`npm run demo`, `npm run serve`), relatório ([6](docs/06-relatorio-avaliacao.md)), decisão de customização ([7](docs/07-decisao-de-customizacao.md)), resumo executivo ([1](docs/01-resumo-executivo.md)) |
@@ -204,7 +211,7 @@ src/
   interfaces/            CLI, API HTTP, página web, composição (runtime)
   evaluation/            casos, avaliador, juiz, harness, execução, relatório
   demo/                  demo executável e visualização do contexto
-tests/                   51 testes (node:test)
+tests/                   53 testes (node:test)
 docs/                    documentação da entrega (8 documentos)
 results/                 avaliações, relatório gerado, saída da demo, exemplo de contexto
 data/                    bancos SQLite gerados (fora do git)
@@ -212,7 +219,7 @@ data/                    bancos SQLite gerados (fora do git)
 
 ## Limitações
 
-- A avaliação com o modelo real ainda não foi executada (chave expirada); os números acima são do modo offline.
+- Um fato de perfil lembrado de outra sessão nem sempre é aplicado pelo modelo (M04); perguntas vizinhas de um fato presente às vezes recebem recusa em vez de resposta parcial (F01).
 - Base pequena e fictícia (17 documentos); casos de teste escritos por quem construiu o sistema.
 - A extração de perfil por padrões é precisa, mas não reconhece todas as formas de dizer a mesma coisa.
 - Guardas por padrões têm falsos positivos e negativos; o portão de regressão pega regressões, não ataques novos.

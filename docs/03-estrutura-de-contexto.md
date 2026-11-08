@@ -32,7 +32,7 @@ Cada módulo estático tem cabeçalho:
 ```markdown
 ---
 modulo: instrucoes
-versao: 2026.11-v1
+versao: 2026.11-v2
 ordem: 3
 ---
 ```
@@ -89,24 +89,39 @@ Resposta entregue: *"Bruno, o trabalho híbrido não se aplica às áreas operac
 | histórico | 1.200 | entram os turnos **mais recentes** que couberem |
 | `resumo_sessao` | 300 | mantém o final do resumo |
 | `memoria_usuario` | 200 | entram os fatos mais prioritários |
-| total estimado | ~2.000 a 2.700 por pergunta | (estimativa da aula: 1 token ~ 4 caracteres) |
+| total estimado | ~2.400 a 3.100 por pergunta (média de 2.459 na avaliação com o gpt-4o-mini) | (estimativa da aula: 1 token ~ 4 caracteres) |
 
 Cada resposta devolve um **manifesto** (`/contexto` na CLI, painel na página web):
 
 ```text
 identidade + regras                711  itens=10
-instrucoes + formato + exemplos    903  itens=3
+instrucoes + formato + exemplos   1309  itens=3
 memoria_usuario                     13  itens=3
 resumo_sessao                        0  itens=0
 alertas_execucao                     0  itens=0
 conhecimento                       536  itens=4
 historico                           63  itens=1
 mensagem_usuario                    16  itens=1
-TOTAL                             2242
+TOTAL                             2648
 ```
 
-Com isso, a parte fixa (regras + instruções, ~1.600 tokens) é conhecida e o crescimento da conversa não estoura a
-janela: o que sai por orçamento continua disponível no resumo da sessão.
+Com isso, a parte fixa (regras + instruções + exemplos, ~2.000 tokens) é conhecida e o crescimento da conversa não
+estoura a janela: o que sai por orçamento continua disponível no resumo da sessão.
+
+## Versões dos módulos
+
+O versionamento foi usado na prática. A avaliação com o gpt-4o-mini mostrou que o modelo copiava o exemplo de
+"informação ausente" e recusava perguntas que a base respondia
+([relatório, seção 4](06-relatorio-avaliacao.md#4-o-que-a-avaliação-ensinou-e-o-que-foi-corrigido)). A correção
+mudou só três módulos, sem tocar em código de busca, memória ou pipeline:
+
+| Módulo | v1 | v2 |
+|---|---|---|
+| `instrucoes` | "se os documentos não respondem, RECUSAR" | ler todos os documentos; responder "não" com base no documento é RESPONDER; RECUSAR só quando nenhum documento trata do assunto; equivalência de palavras e formatos ("em agosto" × "28/08/2026") |
+| `formato_saida` | contrato | contrato + definição explícita de cada decisão |
+| `exemplos` | 4 exemplos | 6 exemplos, cada um dizendo o que o conhecimento contém; novos: resposta "não" e resposta parcial |
+| custo | ~1.600 tokens fixos | ~2.000 tokens fixos |
+| efeito (gpt-4o-mini) | acerto 84,6%, conhecimento 75% | acerto 97,4%, conhecimento 100% |
 
 ## Proteções da própria estrutura
 

@@ -5,6 +5,12 @@ import type { Categoria, TestCase } from "./cases.ts";
 import { checkCase, type CaseCheck } from "./evaluator.ts";
 import { judge, type JudgeVerdict } from "./judge.ts";
 
+/** Trechos que o sistema recuperou para a resposta (o juiz precisa deles para julgar a fundamentação). */
+function evidence(result: AnswerResult): string {
+  const dynamic = result.contexto?.messages.find((m) => m.role === "system" && m.content.startsWith("<memoria_usuario"))?.content ?? "";
+  return dynamic.match(/<conhecimento[^>]*>\n([\s\S]*?)\n<\/conhecimento>/)?.[1] ?? "";
+}
+
 /** Execução de um caso de comportamento e consolidação das métricas (usado pelo runEvaluation e pelo npm test). */
 export type RunRecord = CaseCheck & {
   desfecho: AnswerResult["desfecho"];
@@ -78,7 +84,7 @@ export async function runCase(testCase: TestCase, deps: Deps, userId: string, st
     llmChamado: result.llmChamado,
     tokens: result.contexto?.tokens ?? 0,
     trace: result.trace.map((s) => `${s.etapa} ${s.status}${s.regra ? ` ${s.regra}` : ""}: ${s.detalhe}`),
-    ...(judgeLlm ? { juiz: await judge(judgeLlm, testCase, result.resposta) } : {}),
+    ...(judgeLlm ? { juiz: await judge(judgeLlm, testCase, result.resposta, evidence(result)) } : {}),
   };
 }
 

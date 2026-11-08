@@ -98,4 +98,5 @@ conhecimento, e a guarda de saída exige fonte documental e números presentes n
 |---|---|
 | [`memory.test.ts`](../tests/memory.test.ts) | extração por chave, rejeição de regra/instrução/senha, relevância por assunto, janela + resumo, isolamento de sessão por usuário, esquecimento, fallback do resumo |
 | Casos M01-M07 ([`cases.ts`](../src/evaluation/cases.ts)) | personalização por área e por experiência, continuação, perfil entre sessões, memória envenenada, transparência e esquecimento |
-| Ablação `sem_memoria` × `completo` | offline, a categoria memória vai de **28,6%** para **100%** ([relatório](06-relatorio-avaliacao.md)) |
+| Ablação `sem_memoria` × `completo` | com o gpt-4o-mini (3 execuções), a categoria memória vai de **28,6%** para **85,7%**; offline, para 100% ([relatório](06-relatorio-avaliacao.md)) |
+| Limite observado | no M04, o vínculo "terceirizado" lembrado de outra sessão chega ao contexto, mas o modelo não o aplica nem o declara (3 de 3 execuções) ([relatório, seção 3](06-relatorio-avaliacao.md#memória-funcional-e-relevante)) |

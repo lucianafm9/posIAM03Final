@@ -18,7 +18,7 @@ Fontes: POL-01 — Agendamento de veículos no gate (Tolerância e atrasos)
   memoria      info            perfil relevante: nome (identificação (sempre)), area (identificação (sempre)); janela: 1 turno(s); resumo: não
   recuperacao  info            glossário expandiu a busca: tolerância atrasos
   recuperacao  ok              POL-01 (0.42); RB-03 (0.38)
-  contexto     info            ~1977 tokens; identidade + regras=711, instrucoes + formato + exemplos=903, memoria_usuario=10, resumo_sessao=0, alertas_execucao=0, conhecimento=254, historico=78, mensagem_usuario=21
+  contexto     info            ~2383 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=10, resumo_sessao=0, alertas_execucao=0, conhecimento=254, historico=78, mensagem_usuario=21
   modelo       ok              offline:extrativo
   saida        ok              nenhuma violação
 
@@ -33,7 +33,7 @@ Fontes: POL-01 — Agendamento de veículos no gate (Tolerância e atrasos)
   memoria      info            perfil relevante: nome (identificação (sempre)), area (identificação (sempre)); janela: 2 turno(s); resumo: não; busca contextualizada (pergunta de continuação)
   recuperacao  info            glossário expandiu a busca: tolerância atrasos; chegadas antecipadas
   recuperacao  ok              POL-01 (0.44)
-  contexto     info            ~1961 tokens; identidade + regras=711, instrucoes + formato + exemplos=903, memoria_usuario=10, resumo_sessao=0, alertas_execucao=0, conhecimento=139, historico=182, mensagem_usuario=16
+  contexto     info            ~2367 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=10, resumo_sessao=0, alertas_execucao=0, conhecimento=139, historico=182, mensagem_usuario=16
   modelo       ok              offline:extrativo
   saida        ok              nenhuma violação
 
@@ -48,7 +48,7 @@ Fontes: POL-08 — Jornada, escalas, banco de horas e trabalho híbrido (Trabalh
   memoria      info            perfil relevante: nome (identificação (sempre)), area (identificação (sempre)), tipo_area (assunto da pergunta: "trabalhar"), experiencia (assunto da pergunta: "de casa"); janela: 3 turno(s); resumo: não
   recuperacao  info            glossário expandiu a busca: trabalho híbrido remotamente
   recuperacao  ok              POL-08 (0.63); POL-08 (0.39); ONB-01 (0.31); ONB-01 (0.27)
-  contexto     info            ~2473 tokens; identidade + regras=711, instrucoes + formato + exemplos=903, memoria_usuario=26, resumo_sessao=0, alertas_execucao=0, conhecimento=536, historico=281, mensagem_usuario=16
+  contexto     info            ~2879 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=26, resumo_sessao=0, alertas_execucao=0, conhecimento=536, historico=281, mensagem_usuario=16
   modelo       ok              offline:extrativo
   saida        ok              nenhuma violação
 
@@ -71,7 +71,7 @@ Fontes: POL-04 — Armazenagem de contêineres e free time (Cobrança após o fr
   memoria      info            perfil relevante: nome (identificação (sempre)), area (identificação (sempre)); janela: 4 turno(s); resumo: não
   recuperacao  info            glossário expandiu a busca: free time armazenagem
   recuperacao  ok              POL-04 (0.59); POL-04 (0.55)
-  contexto     info            ~2315 tokens; identidade + regras=711, instrucoes + formato + exemplos=903, memoria_usuario=10, resumo_sessao=0, alertas_execucao=0, conhecimento=277, historico=396, mensagem_usuario=18
+  contexto     info            ~2721 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=10, resumo_sessao=0, alertas_execucao=0, conhecimento=277, historico=396, mensagem_usuario=18
   modelo       ok              offline:extrativo
   saida        ok              nenhuma violação
 
@@ -86,7 +86,7 @@ Fontes: POL-03 — Segurança operacional no pátio e uso de EPI (EPI obrigatór
   memoria      info            perfil relevante: nome (identificação (sempre)), area (identificação (sempre)), tipo_area (assunto da pergunta: "epis"); janela: 0 turno(s); resumo: não
   recuperacao  info            glossário expandiu a busca: EPI obrigatório
   recuperacao  ok              POL-03 (0.45); ONB-01 (0.27)
-  contexto     info            ~1947 tokens; identidade + regras=711, instrucoes + formato + exemplos=903, memoria_usuario=16, resumo_sessao=0, alertas_execucao=0, conhecimento=300, historico=0, mensagem_usuario=17
+  contexto     info            ~2353 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=16, resumo_sessao=0, alertas_execucao=0, conhecimento=300, historico=0, mensagem_usuario=17
   modelo       ok              offline:extrativo
   saida        ok              nenhuma violação
 
@@ -116,7 +116,7 @@ Fontes: RB-04 — Credencial bloqueada na catraca (O que o colaborador deve faze
   entrada      alerta          R07: O colaborador pede uma ação ("desbloquear"). Você não aprova, libera nem abre exceção: use decisao ENCAMINHAR, explique a regra e quem decide.
   memoria      info            perfil relevante: nenhum; janela: 1 turno(s); resumo: não
   recuperacao  ok              RB-04 (0.40); RB-04 (0.38); POL-02 (0.37); POL-02 (0.30)
-  contexto     info            ~2308 tokens; identidade + regras=711, instrucoes + formato + exemplos=903, memoria_usuario=0, resumo_sessao=0, alertas_execucao=38, conhecimento=573, historico=64, mensagem_usuario=19
+  contexto     info            ~2714 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=0, resumo_sessao=0, alertas_execucao=38, conhecimento=573, historico=64, mensagem_usuario=19
   modelo       ok              offline:extrativo
   saida        ok              nenhuma violação
 
@@ -130,10 +130,10 @@ Ventura: Não encontrei essa informação na base de conhecimento do Porto Ventu
   memoria      info            perfil relevante: nenhum; janela: 2 turno(s); resumo: não
   recuperacao  info            glossário expandiu a busca: tolerância atrasos
   recuperacao  ok              POL-01 (0.52)
-  contexto     info            ~1956 tokens; identidade + regras=711, instrucoes + formato + exemplos=903, memoria_usuario=0, resumo_sessao=0, alertas_execucao=0, conhecimento=139, historico=184, mensagem_usuario=19
+  contexto     info            ~2362 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=0, resumo_sessao=0, alertas_execucao=0, conhecimento=139, historico=184, mensagem_usuario=19
   modelo       ok              comprometido
   saida        bloqueado  R01  números sem respaldo nos documentos: 90
-  [Geração: Limite de requisições atingido. Aguarde um pouco e tente novamente. Nova tentativa 2/3 em 1.1s...]
+  [Geração: Limite de requisições atingido. Aguarde um pouco e tente novamente. Nova tentativa 2/3 em 1.0s...]
 
 === 12. Erro transitório (429) e depois sucesso
 Esperado: retentativa visível com backoff; a resposta chega normalmente
@@ -146,7 +146,7 @@ Fontes: POL-03 — Segurança operacional no pátio e uso de EPI (Circulação)
   entrada      ok              nenhum sinal de risco
   memoria      info            perfil relevante: nenhum; janela: 2 turno(s); resumo: não
   recuperacao  ok              POL-03 (0.50); POL-06 (0.28)
-  contexto     info            ~2142 tokens; identidade + regras=711, instrucoes + formato + exemplos=903, memoria_usuario=0, resumo_sessao=0, alertas_execucao=0, conhecimento=325, historico=184, mensagem_usuario=19
+  contexto     info            ~2548 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=0, resumo_sessao=0, alertas_execucao=0, conhecimento=325, historico=184, mensagem_usuario=19
   modelo       ok              instavel
   saida        ok              nenhuma violação
 
@@ -159,7 +159,7 @@ Ventura: Não consegui gerar uma resposta segura agora. Tente novamente em insta
   entrada      ok              nenhum sinal de risco
   memoria      info            perfil relevante: nenhum; janela: 3 turno(s); resumo: não
   recuperacao  ok              POL-03 (0.50); POL-06 (0.28)
-  contexto     info            ~2174 tokens; identidade + regras=711, instrucoes + formato + exemplos=903, memoria_usuario=0, resumo_sessao=0, alertas_execucao=0, conhecimento=325, historico=216, mensagem_usuario=19
+  contexto     info            ~2580 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=0, resumo_sessao=0, alertas_execucao=0, conhecimento=325, historico=216, mensagem_usuario=19
   modelo       bloqueado       Chave da API inválida ou ausente. Confira OPENAI_API_KEY no arquivo .env.
 
 === 14. Transparência da memória

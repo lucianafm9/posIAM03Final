@@ -9,6 +9,8 @@ export type OutputContext = {
   conhecimento: RetrievedChunk[];
   perfil: { chave: string; valor: string }[];
   canary: string;
+  /** Pergunta (já mascarada): um número que o próprio colaborador escreveu pode ser repetido. */
+  pergunta?: string;
 };
 
 export type OutputViolation = { ok: false; regra: string; motivo: string; mensagem: ApprovedKey };
@@ -17,7 +19,10 @@ export type OutputOk = { ok: true; envelope: Envelope; correcoes: string[] };
 
 export type OutputVerdict = OutputOk | OutputViolation;
 
-const EMOJI = /[\p{Extended_Pictographic}\u{FE0F}]/gu;
+/** Texto que admite não ter encontrado a informação. */
+const NOT_FOUND = /n[ãa]o encontrei|n[ãa]o est[áa] na base|n[ãa]o consta/i;
+
+const EMOJI =/[\p{Extended_Pictographic}\u{FE0F}]/gu;
 
 function violation(regra: string, motivo: string, mensagem: ApprovedKey): OutputViolation {
   return { ok: false, regra, motivo, mensagem };
@@ -46,6 +51,7 @@ export function unsupportedNumbers(answer: string, ctx: OutputContext): string[]
   const known = new Set([
     ...ctx.conhecimento.flatMap((c) => numberTokens(`${c.chunk} ${c.docId}`)),
     ...ctx.perfil.flatMap((f) => numberTokens(f.valor)),
+    ...numberTokens(ctx.pergunta ?? ""),
     ...OFFICIAL_NUMBERS,
   ]);
   return [...new Set(numberTokens(withoutIds))].filter((n) => !known.has(n) && !known.has(n.replace(/^0+/, "")) && !known.has(n.padStart(2, "0")));
@@ -79,11 +85,17 @@ export function outputGuard(raw: string, ctx: OutputContext): OutputVerdict {
   const authorization = matchesAffirmative(text, AUTHORIZATION_CLAIMS);
   if (authorization) return violation("R07", `a resposta afirma uma autorização: ${authorization.source}`, "semAutorizacao");
 
+  const correcoes: string[] = [];
+  const retrievedIdsInText = (text.match(/\b[A-Z]{2,4}-\d{2,4}(?:-\d{2,3})?\b/g) ?? []).filter((id) => ctx.conhecimento.some((c) => c.docId === id));
   if (envelope.decisao === "RECUSAR") {
-    return { ok: true, envelope: { ...envelope, fontes: [], memoria_usada: [] }, correcoes: [] };
+    // O rótulo não vale mais que o conteúdo: um "RECUSAR" cujo texto responde com base num documento recuperado
+    // (ex.: "não libere a cancela sem conferir, conforme o RB-02") é uma resposta, e passa pelas mesmas checagens.
+    const answersFromDocs = (envelope.fontes.some((f) => ctx.conhecimento.some((c) => c.docId === f)) || retrievedIdsInText.length > 0) && !NOT_FOUND.test(text);
+    if (!answersFromDocs) return { ok: true, envelope: { ...envelope, fontes: [], memoria_usada: [] }, correcoes: [] };
+    envelope.decisao = "RESPONDER";
+    correcoes.push("decisão RECUSAR com resposta fundamentada reclassificada como RESPONDER");
   }
 
-  const correcoes: string[] = [];
   const retrievedIds = new Set(ctx.conhecimento.map((c) => c.docId));
   const fontes = [...new Set(envelope.fontes)].filter((f) => retrievedIds.has(f));
   const invented = envelope.fontes.filter((f) => !retrievedIds.has(f));

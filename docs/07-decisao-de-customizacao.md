@@ -51,8 +51,16 @@ O fine-tuning não foi descartado; ele tem lugar como **otimização**, sempre c
 
 1. **Custo em escala:** com milhares de perguntas por dia, um modelo pequeno ajustado (ex.: Qwen 1.5B com LoRA, ou
    fine-tuning gerenciado de um modelo menor) pode substituir o gpt-4o-mini, mantendo o RAG e as guardas.
-2. **Formato que o prompt não estabiliza:** se a rodada com o modelo real mostrar instabilidade no contrato JSON ou na
-   declaração de `memoria_usada`.
+2. **Comportamento que o prompt não estabiliza.** A rodada com o gpt-4o-mini confirmou a escolha e mostrou onde ela
+   tem limite:
+   - o **contrato JSON foi estável**: nenhuma resposta fora do contrato nas 348 chamadas ao modelo (174 na v1 e 174 na
+     v2, nas configurações que usam o contrato);
+   - o **excesso de recusa** da v1 (o modelo copiava o exemplo de "não encontrei") foi resolvido **por contexto**, com
+     a v2 das instruções e dos exemplos: conhecimento de 75% para 100%, sem treino;
+   - o que o contexto ainda não resolveu é o **uso de um fato de perfil quando a pergunta não depende dele de forma
+     explícita** (M04: o vínculo terceirizado chega ao contexto, mas não é aplicado). Se um alerta de execução também
+     não resolver, esse é o candidato a ajuste fino: exemplos em que o perfil muda a resposta, com `memoria_usada`
+     preenchida.
 3. **Dados para isso já existem:** os turnos aprovados (`turns` com desfecho `respondida` e fontes) e os casos de
    avaliação viram um dataset JSONL no formato de mensagens (`system` com o contexto montado, `user`, `assistant` com
    o envelope JSON), como o `toJsonl` / `validateJsonl` da aula.

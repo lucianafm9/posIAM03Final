@@ -233,7 +233,7 @@ export async function answer(userId: string, sessionId: string, message: string,
   trace.add("modelo", "ok", deps.llm.name);
 
   // 8. Saída.
-  const checked = outputGuard(raw, { conhecimento: built.conhecimentoUsado, perfil: snapshot.perfilRelevante, canary: CANARY });
+  const checked = outputGuard(raw, { conhecimento: built.conhecimentoUsado, perfil: snapshot.perfilRelevante, canary: CANARY, pergunta });
   if (!checked.ok) {
     trace.add("saida", "bloqueado", checked.motivo, checked.regra);
     const desfecho: Desfecho = checked.mensagem === "semInformacao" ? "sem_informacao" : checked.mensagem === "falhaTecnica" ? "falha" : "bloqueada";
