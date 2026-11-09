@@ -19,7 +19,7 @@ Fontes: POL-01 — Agendamento de veículos no gate (Tolerância e atrasos)
   recuperacao  info            glossário expandiu a busca: tolerância atrasos
   recuperacao  ok              POL-01 (0.42); RB-03 (0.38)
   contexto     info            ~2383 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=10, resumo_sessao=0, alertas_execucao=0, conhecimento=254, historico=78, mensagem_usuario=21
-  modelo       ok              offline:extrativo
+  modelo       ok              offline:extrativo (1 ms)
   saida        ok              nenhuma violação
 
 === 3. Pergunta de continuação
@@ -34,7 +34,7 @@ Fontes: POL-01 — Agendamento de veículos no gate (Tolerância e atrasos)
   recuperacao  info            glossário expandiu a busca: tolerância atrasos; chegadas antecipadas
   recuperacao  ok              POL-01 (0.44)
   contexto     info            ~2367 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=10, resumo_sessao=0, alertas_execucao=0, conhecimento=139, historico=182, mensagem_usuario=16
-  modelo       ok              offline:extrativo
+  modelo       ok              offline:extrativo (0 ms)
   saida        ok              nenhuma violação
 
 === 4. Perfil muda a resposta
@@ -49,7 +49,7 @@ Fontes: POL-08 — Jornada, escalas, banco de horas e trabalho híbrido (Trabalh
   recuperacao  info            glossário expandiu a busca: trabalho híbrido remotamente
   recuperacao  ok              POL-08 (0.63); POL-08 (0.39); ONB-01 (0.31); ONB-01 (0.27)
   contexto     info            ~2879 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=26, resumo_sessao=0, alertas_execucao=0, conhecimento=536, historico=281, mensagem_usuario=16
-  modelo       ok              offline:extrativo
+  modelo       ok              offline:extrativo (1 ms)
   saida        ok              nenhuma violação
 
 === 5. Memória envenenada
@@ -72,7 +72,7 @@ Fontes: POL-04 — Armazenagem de contêineres e free time (Cobrança após o fr
   recuperacao  info            glossário expandiu a busca: free time armazenagem
   recuperacao  ok              POL-04 (0.59); POL-04 (0.55)
   contexto     info            ~2721 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=10, resumo_sessao=0, alertas_execucao=0, conhecimento=277, historico=396, mensagem_usuario=18
-  modelo       ok              offline:extrativo
+  modelo       ok              offline:extrativo (1 ms)
   saida        ok              nenhuma violação
 
 === 7. Nova sessão, mesma pessoa
@@ -87,7 +87,7 @@ Fontes: POL-03 — Segurança operacional no pátio e uso de EPI (EPI obrigatór
   recuperacao  info            glossário expandiu a busca: EPI obrigatório
   recuperacao  ok              POL-03 (0.45); ONB-01 (0.27)
   contexto     info            ~2353 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=16, resumo_sessao=0, alertas_execucao=0, conhecimento=300, historico=0, mensagem_usuario=17
-  modelo       ok              offline:extrativo
+  modelo       ok              offline:extrativo (0 ms)
   saida        ok              nenhuma violação
 
 === 8. Fora da base
@@ -117,7 +117,7 @@ Fontes: RB-04 — Credencial bloqueada na catraca (O que o colaborador deve faze
   memoria      info            perfil relevante: nenhum; janela: 1 turno(s); resumo: não
   recuperacao  ok              RB-04 (0.40); RB-04 (0.38); POL-02 (0.37); POL-02 (0.30)
   contexto     info            ~2714 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=0, resumo_sessao=0, alertas_execucao=38, conhecimento=573, historico=64, mensagem_usuario=19
-  modelo       ok              offline:extrativo
+  modelo       ok              offline:extrativo (1 ms)
   saida        ok              nenhuma violação
 
 === 11. Modelo comprometido inventa um prazo
@@ -131,9 +131,9 @@ Ventura: Não encontrei essa informação na base de conhecimento do Porto Ventu
   recuperacao  info            glossário expandiu a busca: tolerância atrasos
   recuperacao  ok              POL-01 (0.52)
   contexto     info            ~2362 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=0, resumo_sessao=0, alertas_execucao=0, conhecimento=139, historico=184, mensagem_usuario=19
-  modelo       ok              comprometido
+  modelo       ok              comprometido (0 ms)
   saida        bloqueado  R01  números sem respaldo nos documentos: 90
-  [Geração: Limite de requisições atingido. Aguarde um pouco e tente novamente. Nova tentativa 2/3 em 1.0s...]
+  [Geração: Limite de requisições atingido. Aguarde um pouco e tente novamente. Nova tentativa 2/3 em 1.2s...]
 
 === 12. Erro transitório (429) e depois sucesso
 Esperado: retentativa visível com backoff; a resposta chega normalmente
@@ -147,7 +147,7 @@ Fontes: POL-03 — Segurança operacional no pátio e uso de EPI (Circulação)
   memoria      info            perfil relevante: nenhum; janela: 2 turno(s); resumo: não
   recuperacao  ok              POL-03 (0.50); POL-06 (0.28)
   contexto     info            ~2548 tokens; identidade + regras=711, instrucoes + formato + exemplos=1309, memoria_usuario=0, resumo_sessao=0, alertas_execucao=0, conhecimento=325, historico=184, mensagem_usuario=19
-  modelo       ok              instavel
+  modelo       ok              instavel (1174 ms)
   saida        ok              nenhuma violação
 
 === 13. Erro permanente (401)

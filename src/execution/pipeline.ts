@@ -6,6 +6,7 @@ import { buildContext, CANARY, type ManifestEntry } from "../context/contextBuil
 import type { StaticModule } from "../context/moduleLoader.ts";
 import type { Glossary } from "../knowledge/glossary.ts";
 import { retrieve } from "../knowledge/retriever.ts";
+import { inspectChunk } from "../knowledge/sanitizeChunk.ts";
 import type { VectorRepository } from "../knowledge/vectorRepository.ts";
 import type { MemoryService } from "../memory/memoryService.ts";
 import { detectMemoryIntent } from "../memory/intents.ts";
@@ -18,7 +19,14 @@ import { outputGuard } from "./outputGuard.ts";
 import { Trace, type TraceStep } from "./trace.ts";
 
 /** Configuração do pipeline. As variações existem para a avaliação comparar o sistema com e sem cada camada. */
-export type PipelineMode = "completo" | "sem_memoria" | "llm_puro";
+/**
+ * - completo: a plataforma inteira;
+ * - sem_memoria: RAG + regras + guardas, cada pergunta isolada;
+ * - contexto_longo: memória + regras + guardas, mas SEM busca: todos os documentos vão no contexto
+ *   (alternativa ao RAG avaliada na decisão de customização);
+ * - llm_puro: só o modelo, sem plataforma.
+ */
+export type PipelineMode = "completo" | "sem_memoria" | "contexto_longo" | "llm_puro";
 
 export type Deps = {
   llm: LlmClient;
@@ -54,6 +62,8 @@ export type AnswerResult = {
     resumiu: number;
   };
   llmChamado: boolean;
+  /** Operação: tempo total, tempo do modelo e tokens reais cobrados (quando o provedor informa). */
+  metricas: { latenciaMs: number; modeloMs: number; tokensEntrada: number; tokensSaida: number };
   trace: TraceStep[];
   contexto?: { manifest: ManifestEntry[]; tokens: number; messages: Message[] };
 };
@@ -92,7 +102,9 @@ function describeProfile(facts: ProfileFact[]): string {
  */
 export async function answer(userId: string, sessionId: string, message: string, deps: Deps): Promise<AnswerResult> {
   const mode = deps.mode ?? "completo";
-  const useMemory = mode === "completo";
+  const useMemory = mode === "completo" || mode === "contexto_longo";
+  const started = Date.now();
+  const metricas: AnswerResult["metricas"] = { latenciaMs: 0, modeloMs: 0, tokensEntrada: 0, tokensSaida: 0 };
   const trace = new Trace();
   const memoria: AnswerResult["memoria"] = { usada: [], gravada: [], rejeitada: [], resumiu: 0 };
 
@@ -118,13 +130,14 @@ export async function answer(userId: string, sessionId: string, message: string,
       fontes: extra.fontes ?? [],
       memoria,
       llmChamado: extra.llmChamado ?? false,
+      metricas: { ...metricas, latenciaMs: Date.now() - started },
       trace: trace.steps,
       ...(extra.contexto ? { contexto: extra.contexto } : {}),
     };
   };
 
   // Linha de base da avaliação: o "chatbot genérico", sem RAG, sem memória e sem guardas.
-  if (mode === "llm_puro") return answerWithoutContext(message, deps, trace, memoria);
+  if (mode === "llm_puro") return answerWithoutContext(message, deps, trace, memoria, metricas, started);
 
   // 0. Pedidos sobre a própria memória: resolvidos sem modelo (transparência e eliminação, LGPD).
   const intent = useMemory ? detectMemoryIntent(message) : undefined;
@@ -136,7 +149,7 @@ export async function answer(userId: string, sessionId: string, message: string,
     const removed = deps.memory.forget(userId);
     deps.memory.startSession(userId, sessionId); // a conversa continua numa sessão vazia, sem histórico
     trace.add("memoria", "info", `perfil apagado (${removed} fato(s)) e sessões encerradas`, "R09");
-    return { resposta: APPROVED.memoriaApagada, decisao: "RESPONDER", desfecho: "memoria", fontes: [], memoria, llmChamado: false, trace: trace.steps };
+    return { resposta: APPROVED.memoriaApagada, decisao: "RESPONDER", desfecho: "memoria", fontes: [], memoria, llmChamado: false, metricas: { ...metricas, latenciaMs: Date.now() - started }, trace: trace.steps };
   }
 
   // 1. Entrada.
@@ -187,13 +200,17 @@ export async function answer(userId: string, sessionId: string, message: string,
     );
   }
 
-  // 5. Busca.
+  // 5. Busca (no modo contexto_longo, todos os trechos da base entram, sem busca).
   let retrieval;
   try {
-    retrieval = await withRetry(() => retrieve(snapshot.consulta.query, deps.knowledge, deps.embedder, deps.glossary), {
+    retrieval =
+      mode === "contexto_longo"
+        ? allChunksInspected(deps)
+        : await withRetry(() => retrieve(snapshot.consulta.query, deps.knowledge, deps.embedder, deps.glossary), {
       ...SETTINGS.retry,
-      onRetry: ({ attempt, maxAttempts, delayMs, error }) => deps.onNotice?.(`[Busca: ${describeError(error)} Nova tentativa ${attempt + 1}/${maxAttempts} em ${(delayMs / 1000).toFixed(1)}s...]`),
-    });
+            onRetry: ({ attempt, maxAttempts, delayMs, error }) =>
+              deps.onNotice?.(`[Busca: ${describeError(error)} Nova tentativa ${attempt + 1}/${maxAttempts} em ${(delayMs / 1000).toFixed(1)}s...]`),
+          });
   } catch (error) {
     trace.add("recuperacao", "bloqueado", `busca indisponível: ${describeError(error)}`, "R01");
     return finish(APPROVED.falhaTecnica, "RECUSAR", "falha", { perguntaGravada: pergunta, noContexto: false });
@@ -204,7 +221,13 @@ export async function answer(userId: string, sessionId: string, message: string,
     return finish(APPROVED.semInformacao, "RECUSAR", "sem_informacao", { perguntaGravada: pergunta, noContexto: true });
   }
   if (retrieval.expansoes.length) trace.add("recuperacao", "info", `glossário expandiu a busca: ${retrieval.expansoes.join("; ")}`);
-  trace.add("recuperacao", "ok", retrieval.chunks.map((c) => `${c.docId} (${c.score.toFixed(2)})`).join("; "));
+  trace.add(
+    "recuperacao",
+    "ok",
+    mode === "contexto_longo"
+      ? `contexto longo: ${retrieval.chunks.length} trechos de toda a base, sem busca`
+      : retrieval.chunks.map((c) => `${c.docId} (${c.score.toFixed(2)})`).join("; "),
+  );
 
   // 6. Contexto.
   const built = buildContext({
@@ -215,12 +238,14 @@ export async function answer(userId: string, sessionId: string, message: string,
     resumo: snapshot.resumo,
     janela: snapshot.janela,
     conhecimento: retrieval.chunks,
+    ...(mode === "contexto_longo" ? { budget: { ...SETTINGS.contextBudget, conhecimento: 20_000 } } : {}),
   });
   trace.add("contexto", "info", `~${built.tokens} tokens; ${built.manifest.map((m) => `${m.bloco}=${m.tokens}${m.cortados ? ` (-${m.cortados})` : ""}`).join(", ")}`);
   const contexto = { manifest: built.manifest, tokens: built.tokens, messages: built.messages };
 
   // 7. Geração.
   let raw: string;
+  const modelStart = Date.now();
   try {
     raw = await withRetry(() => deps.llm.complete(built.messages, { json: true }), {
       ...SETTINGS.retry,
@@ -230,7 +255,13 @@ export async function answer(userId: string, sessionId: string, message: string,
     trace.add("modelo", "bloqueado", describeError(error));
     return finish(APPROVED.falhaTecnica, "RECUSAR", "falha", { perguntaGravada: pergunta, noContexto: false, llmChamado: true, contexto });
   }
-  trace.add("modelo", "ok", deps.llm.name);
+  metricas.modeloMs = Date.now() - modelStart;
+  const usage = deps.llm.usage?.();
+  if (usage) {
+    metricas.tokensEntrada = usage.entrada;
+    metricas.tokensSaida = usage.saida;
+  }
+  trace.add("modelo", "ok", `${deps.llm.name} (${metricas.modeloMs} ms${usage ? `; ${usage.entrada} tokens de entrada, ${usage.saida} de saída` : ""})`);
 
   // 8. Saída.
   const checked = outputGuard(raw, { conhecimento: built.conhecimentoUsado, perfil: snapshot.perfilRelevante, canary: CANARY, pergunta });
@@ -258,10 +289,32 @@ export async function answer(userId: string, sessionId: string, message: string,
   });
 }
 
-const BASELINE_PROMPT = `Você é o assistente interno do ${SETTINGS.company}. Responda em português, de forma objetiva, à pergunta do colaborador.`;
+/** Modo contexto_longo: a base inteira, com a mesma inspeção contra injeção indireta da busca (comparação justa). */
+function allChunksInspected(deps: Deps) {
+  const descartados: { docId: string; motivo: string }[] = [];
+  const chunks = deps.knowledge.all(deps.embedder.name).filter((c) => {
+    const inspection = inspectChunk(c.chunk);
+    if (!inspection.safe) descartados.push({ docId: c.docId, motivo: inspection.reason });
+    return inspection.safe;
+  });
+  return { chunks, descartados, minScore: 0, melhorScore: 1, expansoes: [] as string[] };
+}
+
+const BASELINE_PROMPT =`Você é o assistente interno do ${SETTINGS.company}. Responda em português, de forma objetiva, à pergunta do colaborador.`;
 
 /** Modo "llm_puro": o que a empresa teria sem a plataforma de contexto (linha de base da avaliação). */
-async function answerWithoutContext(message: string, deps: Deps, trace: Trace, memoria: AnswerResult["memoria"]): Promise<AnswerResult> {
+async function answerWithoutContext(
+  message: string,
+  deps: Deps,
+  trace: Trace,
+  memoria: AnswerResult["memoria"],
+  metricas: AnswerResult["metricas"],
+  started: number,
+): Promise<AnswerResult> {
+  const done = () => {
+    const usage = deps.llm.usage?.();
+    return { ...metricas, modeloMs: Date.now() - started, latenciaMs: Date.now() - started, tokensEntrada: usage?.entrada ?? 0, tokensSaida: usage?.saida ?? 0 };
+  };
   try {
     const raw = await withRetry(
       () =>
@@ -272,9 +325,9 @@ async function answerWithoutContext(message: string, deps: Deps, trace: Trace, m
       SETTINGS.retry,
     );
     trace.add("modelo", "ok", `${deps.llm.name} sem contexto, sem memória e sem guardas`);
-    return { resposta: raw.trim(), decisao: "RESPONDER", desfecho: "respondida", fontes: [], memoria, llmChamado: true, trace: trace.steps };
+    return { resposta: raw.trim(), decisao: "RESPONDER", desfecho: "respondida", fontes: [], memoria, llmChamado: true, metricas: done(), trace: trace.steps };
   } catch (error) {
     trace.add("modelo", "bloqueado", describeError(error));
-    return { resposta: APPROVED.falhaTecnica, decisao: "RECUSAR", desfecho: "falha", fontes: [], memoria, llmChamado: true, trace: trace.steps };
+    return { resposta: APPROVED.falhaTecnica, decisao: "RECUSAR", desfecho: "falha", fontes: [], memoria, llmChamado: true, metricas: done(), trace: trace.steps };
   }
 }

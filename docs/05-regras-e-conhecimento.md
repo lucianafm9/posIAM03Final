@@ -67,6 +67,9 @@ A base mistura assuntos vizinhos de propósito ("7 dias" aparece no free time, n
 
 ### Pipeline de RAG
 
+O passo a passo com dados reais (o documento, os chunks, a linha no banco e os scores de uma busca) está em
+[9. Fluxo de dados e ingestão](09-fluxo-de-dados-e-ingestao.md).
+
 | Etapa da aula | Neste projeto |
 |---|---|
 | Ingestão | [`documents.ts`](../src/knowledge/documents.ts) lê ID, título, tipo, versão e área; [`chunkText.ts`](../src/knowledge/chunkText.ts) quebra por seção e frase com prefixo "Documento > Seção" e overlap de uma frase; a seção "Objetivo" fica fora (descreve o documento, não traz regra); [`ingest.ts`](../src/knowledge/ingest.ts) inspeciona cada chunk e manda para a **quarentena** os que têm instrução embutida |

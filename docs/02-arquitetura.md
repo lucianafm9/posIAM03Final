@@ -106,6 +106,9 @@ errar; as guardas em código garantem que, se ele errar, a falha não chega ao c
 
 ## Fluxo de uma requisição (do input à resposta)
 
+O mesmo fluxo com os dados reais de uma pergunta (scores, tokens, saída do modelo) está em
+[9. Fluxo de dados e ingestão](09-fluxo-de-dados-e-ingestao.md).
+
 ```mermaid
 sequenceDiagram
   autonumber
@@ -220,6 +223,8 @@ erDiagram
 | Página web | `http://localhost:3000` | Chat com botões de exemplo e painéis de **trace**, **manifesto do contexto** e **memória** |
 | Debug da busca | `npm run debug -- "pergunta"` | Ranking dos chunks com score, corte e expansão do glossário (aula: `ragDebug`) |
 | Contexto real | `npm run contexto -- "pergunta"` | Imprime as mensagens exatas enviadas ao modelo |
+| Fluxo de dados | `npm run fluxo -- "pergunta"` | O dado em cada etapa, do arquivo .md à resposta ([doc 9](09-fluxo-de-dados-e-ingestao.md)) |
+| Cenários | `npm run cenarios` | Conversas completas em vários turnos e sessões ([doc 10](10-demonstracao-e-cenarios.md)) |
 
 Exemplo de chamada:
 

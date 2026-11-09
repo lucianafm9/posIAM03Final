@@ -34,7 +34,7 @@ Avaliação com **39 casos de comportamento** (conhecimento, memória, fora da b
 | RAG + regras, sem memória | 87,2% | 100% | 28,6% | 39/42 | 0% |
 | **Plataforma completa** | **97,4%** | **100%** | **85,7%** | **42/42** | **0%** |
 
-Consistência de 100% (mesmo resultado nas 3 execuções) e 94% de aprovação do juiz LLM. Sem a plataforma, o modelo
+Consistência de 100% (mesmo resultado nas 3 execuções) e 94,9% de aprovação do juiz LLM. Custo medido: US$ 0,34 por mil respostas, com latência mediana de 1,8 s. Sem a plataforma, o modelo
 inventou, por exemplo, "5 dias de licença-paternidade", um benefício que a empresa não documenta.
 
 Destaques:
@@ -56,11 +56,21 @@ Destaques:
 
 ## Decisão de customização
 
-**RAG + engenharia de contexto + guardas determinísticas, sem fine-tuning em produção.** O D04 mostrou que o
-conhecimento vem do contexto (fine-tuning sem contexto foi o pior modo, 75% de alucinação) e que o que o LoRA ensina
-(recusar, citar fonte, formato) esta plataforma garante em código, com rastreabilidade e sem retreinar quando um
-documento muda. O fine-tuning fica como otimização de custo em escala, sempre combinado com RAG.
-Detalhes: [decisão de customização](07-decisao-de-customizacao.md).
+**RAG + engenharia de contexto + guardas determinísticas, sem fine-tuning em produção.** Cinco opções foram
+comparadas, com números medidos:
+
+| Opção | Acerto | Alucinação | Custo / mil respostas | Fonte da medida |
+|---|---:|---:|---:|---|
+| Só prompt | 23,1% | 12,8% | US$ 0,04 | este projeto |
+| Contexto longo (base inteira no prompt) | 91,5% | 0% | US$ 1,56 | este projeto |
+| **RAG + contexto (escolhida)** | **97,4%** | **0%** | **US$ 0,34** | este projeto |
+| Fine-tuning sem contexto | 10% | 75% | treino + GPU | D04 |
+| Fine-tuning + RAG | 85% | 15% | treino + GPU | D04 |
+
+O conhecimento vem do contexto; o que o fine-tuning ensina (recusar, citar fonte, formato) esta plataforma garante em
+código, com rastreabilidade e sem retreinar quando um documento muda. O contexto longo funciona, mas custa 4,6 vezes
+mais e erra mais, porque o trecho certo se perde entre 71. O fine-tuning fica como otimização de custo em escala,
+sempre combinado com RAG. Detalhes: [decisão de customização](07-decisao-de-customizacao.md).
 
 ## Limitações
 

@@ -79,6 +79,16 @@ test("o contexto enviado ao modelo traz o perfil relevante e a pergunta escapada
   assert.match(sent, /&lt;b&gt;urgente&lt;\/b&gt;/);
 });
 
+test("modo contexto longo envia a base inteira (com a mesma inspeção) e as métricas de operação são registradas", async () => {
+  const llm = createScriptedLlm([envelope("Tolerância de 30 minutos [POL-01].", { fontes: ["POL-01"] })]);
+  const deps = await offlineDeps(llm, "contexto_longo");
+  const r = await answer("u", deps.memory.startSession("u"), "Qual a tolerância de atraso no gate?", deps);
+  const knowledgeBlock = r.contexto!.manifest.find((m) => m.bloco === "conhecimento")!;
+  assert.equal(knowledgeBlock.itens, deps.knowledge.count(deps.embedder.name));
+  assert.equal(r.desfecho, "respondida");
+  assert.ok(r.metricas.latenciaMs >= r.metricas.modeloMs);
+});
+
 test("modo sem memória ignora o perfil; modo llm_puro chama o modelo sem contexto", async () => {
   const deps = await offlineDeps(undefined, "sem_memoria");
   const s = deps.memory.startSession("u");

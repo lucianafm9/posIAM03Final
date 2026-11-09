@@ -22,16 +22,17 @@ colaboradores, cada um com o comportamento esperado e o que não pode aparecer n
 Mais de 15 perguntas, como pedido, e várias que "saem do esperado" para ver se o sistema diz "não sei, fale com o
 suporte" em vez de inventar.
 
-**Ablação: três configurações, as mesmas perguntas.**
+**Ablação: quatro configurações, as mesmas perguntas.**
 
 | Configuração | O que tem | Representa |
 |---|---|---|
 | LLM puro | só o modelo, com um prompt de uma linha | o chatbot genérico que a empresa teria sem a plataforma |
 | RAG + regras, sem memória | conhecimento, regras e guardas; cada pergunta isolada | um RAG "clássico" |
+| Contexto longo | memória, regras e guardas, mas **sem busca**: os 71 trechos da base em toda pergunta | a alternativa ao RAG (ver [decisão](07-decisao-de-customizacao.md)) |
 | Plataforma completa | tudo | o Ventura Assist |
 
 **Execução.** Modelo real: `gpt-4o-mini` com embeddings `text-embedding-3-small`, **3 execuções por caso** em cada
-configuração (351 respostas). Também foi feita uma rodada offline (modelo extrativo local), que roda sem chave e é o
+configuração (468 respostas), com medição de latência e dos tokens reais cobrados pela API. Também foi feita uma rodada offline (modelo extrativo local), que roda sem chave e é o
 portão de regressão do `npm test`.
 
 **Verificação em duas camadas.**
@@ -45,20 +46,43 @@ portão de regressão do `npm test`.
 
 ## 2. Resultados com o modelo real (gpt-4o-mini, 3 execuções por caso)
 
-A avaliação foi feita duas vezes: a **v1** com os módulos de contexto originais e a **v2** depois das correções
-descritas na seção 4. Os números da v2 são os da versão entregue.
+A plataforma foi avaliada primeiro na **v1** (módulos de contexto originais). Depois das correções descritas na seção 4,
+a **v2** foi avaliada; a rodada final repetiu a v2 com a configuração "contexto longo" e as métricas de operação. Os
+números abaixo são da rodada final ([`results/avaliacao-openai.json`](../results/avaliacao-openai.json)).
 
-### Resumo da v2 (versão entregue)
+### Resumo (versão entregue)
 
-| Configuração | Acerto | Conhecimento | Memória | Fora da base | Segurança | Alucinação | Críticos seguros | Juiz LLM |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| LLM puro | 23,1% | 18,8% | 0% | 16,7% | 50% | **12,8%** | 18/42 | - |
-| RAG + regras, sem memória | 87,2% | 100% | 28,6% | 100% | 100% | 0% | 39/42 | - |
-| **Plataforma completa** | **97,4%** | **100%** | **85,7%** | **100%** | **100%** | **0%** | **42/42** | **94%** |
+| Configuração | Acerto | Conhecimento | Memória | Fora da base | Segurança | Alucinação | Críticos seguros | Consistência | Juiz LLM |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| LLM puro | 23,1% | 18,8% | 0% | 16,7% | 50% | **12,8%** | 18/42 | 100% | - |
+| RAG + regras, sem memória | 87,2% | 100% | 28,6% | 100% | 100% | 0% | 39/42 | 100% | - |
+| Contexto longo | 91,5% | 89,6% | 76,2% | 100% | 100% | 0% | 42/42 | 94,9% | - |
+| **Plataforma completa** | **97,4%** | **100%** | **85,7%** | **100%** | **100%** | **0%** | **42/42** | **100%** | **94,9%** |
 
-Consistência (mesmo resultado e mesmo desfecho nas 3 execuções de cada caso): **100%** nas três configurações.
-Um quarto das respostas (25,6%) é decidido sem chamar o modelo. Contexto médio de ~2.460 tokens nas respostas em que
-o modelo é chamado.
+Consistência = mesmo resultado e mesmo desfecho nas 3 execuções de cada caso. Na plataforma completa, um quarto das
+respostas (25,6%) é decidido sem chamar o modelo.
+
+### Operação (latência, tokens e custo)
+
+Medido em cada resposta: tempo total (incluindo o embedding da busca), tokens reais de entrada e saída informados pela
+API e custo pelo preço de tabela do gpt-4o-mini (US$ 0,15 / 0,60 por milhão de tokens de entrada / saída).
+
+| Configuração | Latência mediana | Latência p95 | Sem modelo | Tokens de entrada | Tokens de saída | Custo / mil respostas |
+|---|---:|---:|---:|---:|---:|---:|
+| LLM puro | 1,1 s | 2,4 s | - | 52 | 49 | US$ 0,04 |
+| RAG + regras, sem memória | 1,8 s | 2,9 s | ~1 ms | 2.731 | 78 | US$ 0,34 |
+| Contexto longo | 1,6 s | 3,4 s | ~0 ms | **12.758** | 80 | **US$ 1,56** |
+| **Plataforma completa** | 1,8 s | 2,8 s | ~0 ms | 2.744 | 78 | **US$ 0,34** |
+
+Leitura:
+
+- **Custo:** a plataforma completa custa o mesmo que o RAG sem memória (US$ 0,34 por mil respostas). A memória
+  acrescenta poucos tokens, porque só os fatos relevantes e a janela entram no contexto. O contexto longo custa 4,6
+  vezes mais, e esse custo cresce a cada documento novo.
+- **Latência:** ~1,8 s na mediana, aceitável para um chat interno. As respostas decididas por código (emergência,
+  bloqueios, memória) saem em milissegundos, justamente onde a velocidade mais importa (emergência).
+- **Por que a plataforma é mais lenta que o LLM puro:** a resposta tem cerca de 50 vezes mais contexto e uma chamada de
+  embedding para a busca. É o preço de responder com fonte, em vez de inventar.
 
 ### Evolução v1 → v2 (plataforma completa)
 
@@ -71,7 +95,7 @@ o modelo é chamado.
 | Segurança | 100% | 100% |
 | Alucinação | 0% | 0% |
 | Críticos seguros | 42/42 | 42/42 |
-| Juiz LLM | 71,8% | **94,0%** |
+| Juiz LLM | 71,8% | **94,9%** |
 
 O que a v1 mostrou: o sistema já era **seguro** (0% de alucinação, 42/42 críticos), mas **cauteloso demais**: 5
 perguntas que estão na base (K02, K08, K10, K13, M02) eram recusadas nas 3 execuções. A seção 4 explica a causa e a
@@ -83,15 +107,24 @@ correção. Os dados da v1 estão em [`results/avaliacao-openai-v1.json`](../res
 |---|---:|---:|---:|---:|
 | LLM puro | 28,2% | 0% | 7/14 | 0% |
 | RAG + regras, sem memória | 87,2% | 28,6% | 13/14 | 0% |
+| Contexto longo | 82,1% | 100% | 13/14 | 10,3% |
 | Plataforma completa | 100% | 100% | 14/14 | 0% |
 
-O modelo local só copia frases dos documentos, então **não alucina por construção**: o "LLM puro" offline recusa em
-vez de inventar. Essa rodada serve para testar o pipeline (busca, memória, guardas e contexto) isolado da variação do
+O modelo local só copia frases dos documentos, então **não inventa números**: o "LLM puro" offline recusa em vez de
+alucinar. No contexto longo offline, a alucinação de 10,3% tem outra causa. Sem a busca, não existe o corte por score
+mínimo, então perguntas fora da base (licença-paternidade, refeitório) recebem frases de documentos que não respondem
+a elas, em vez de "não encontrei". É uma evidência, no próprio pipeline, de que o corte da busca também funciona como
+o filtro do "não sei". Essa rodada serve para testar o pipeline (busca, memória, guardas e contexto) isolado da variação do
 modelo, e roda a cada `npm test`.
 
 ## 3. Análise por critério de aceitação
 
 ### Conhecimento: "utilizado corretamente, reduz alucinação"
+
+- **Mais contexto não é melhor contexto.** Com a base inteira no prompt (contexto longo), o acerto em conhecimento caiu
+  de 100% para 89,6%: K08 (carga radioativa) foi recusado nas 3 execuções e K03 (EPIs do cais) em 2, com a resposta
+  presente no contexto, mas diluída entre 71 trechos. A busca não serve só para economizar: ela também melhora a
+  resposta, porque entrega ao modelo só o que importa.
 
 - **Sem a plataforma, o modelo inventa com confiança.** O LLM puro errou 81% das perguntas da base e alucinou em
   12,8% das respostas. Exemplos reais da avaliação: "A licença-paternidade é de **5 dias corridos**... pode ter
@@ -143,7 +176,7 @@ modelo, e roda a cada `npm test`.
 
 ### Arquitetura e engenharia: "estrutura reutilizável, documentação clara"
 
-- 53 testes automatizados (`npm test`), incluindo os 39 casos como **portão de regressão**: uma mudança que reabra uma
+- 54 testes automatizados (`npm test`), incluindo os 39 casos como **portão de regressão**: uma mudança que reabra uma
   falha crítica, gere alucinação ou derrube a memória quebra o build.
 - As correções da v2 mudaram **dois arquivos de contexto e uma regra da guarda**, sem tocar em busca, memória ou
   pipeline. É a vantagem prática do contexto modular: o ajuste fica localizado e versionado (`2026.11-v1` → `v2`).
@@ -163,10 +196,11 @@ resultados:
 | K13 ainda recusado | Pergunta "em agosto", documento "28/08/2026" | Instruções: a pergunta pode usar outras palavras ou formatos (mês por extenso × data) | Não |
 | Juiz reprovava respostas certas (K12, K15, S09) | O juiz **não via os documentos**: julgava "prazo não documentado" sem conhecer o documento; no S09 achou que "cupom fiscal com CPF" (texto da POL-07) era o CPF do usuário | O juiz passou a receber os trechos recuperados | Só a entrada do juiz |
 
-Juiz na v2 (94%): das 7 reprovações em 117, 6 são em respostas que a verificação determinística aprovou. Nos casos
-M06 (3x), o juiz reprova porque "não há documentos", mas a resposta lista a memória do usuário e não precisa de
+Juiz na rodada final (94,9%): das 6 reprovações em 117, 4 são em respostas que a verificação determinística aprovou.
+No M06 (1x), o juiz reprova porque "não há documentos", mas a resposta lista a memória do usuário e não precisa de
 documento. No K13 (3x), ele exige a seção "Resposta" do incidente, mas o fato (6 minutos) também está na seção citada,
-"Lições aprendidas". Em ambos, o juiz foi mais estrito que a rubrica. A única reprovação com falha real é a M04.
+"Lições aprendidas". Em ambos, o juiz foi mais estrito que a rubrica. As únicas reprovações com falha real são as do
+M04 (2x), que a verificação determinística também reprova.
 
 ### Offline (antes da rodada real)
 

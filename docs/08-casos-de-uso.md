@@ -4,7 +4,8 @@
 
 Cenário: **suporte interno + onboarding** do Porto Ventura Terminais (empresa fictícia de logística portuária).
 O assistente atende colaboradores de operação, áreas administrativas e novos contratados. Cada caso de uso abaixo
-indica as camadas acionadas e o caso de teste que o comprova. Todos podem ser reproduzidos com `npm start -- --offline`
+indica as camadas acionadas e o caso de teste que o comprova. As conversas completas com o gpt-4o-mini (UC1, UC2,
+UC3, UC5, UC6 e UC7) estão em [10. Demonstração e cenários](10-demonstracao-e-cenarios.md). Todos podem ser reproduzidos com `npm start -- --offline`
 ou na página de `npm run serve`.
 
 ## UC1. Operadora de gate nova tira dúvidas do dia a dia

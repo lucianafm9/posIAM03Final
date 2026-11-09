@@ -23,12 +23,26 @@ A plataforma integra o que foi construído ao longo do módulo:
 | 4 | [Memória](docs/04-memoria.md) | trabalho, sessão e longo prazo; relevância; anti-envenenamento; LGPD |
 | 5 | [Regras e conhecimento](docs/05-regras-e-conhecimento.md) | 10 regras e onde são aplicadas, tratamento de erros, base, pipeline RAG, como reduz alucinação |
 | 6 | [Relatório de avaliação](docs/06-relatorio-avaliacao.md) | metodologia, resultados, análise por critério, achados, implicações, limitações |
-| 7 | [Decisão de customização](docs/07-decisao-de-customizacao.md) | RAG + contexto × fine-tuning, com a evidência do D04 |
+| 7 | [Decisão de customização](docs/07-decisao-de-customizacao.md) | 5 opções comparadas (só prompt, contexto longo, RAG, fine-tuning, fine-tuning + RAG) com acerto, alucinação, custo e latência medidos |
 | 8 | [Casos de uso](docs/08-casos-de-uso.md) | 8 cenários reais com as camadas acionadas e o teste que os comprova |
+| 9 | [Fluxo de dados e ingestão](docs/09-fluxo-de-dados-e-ingestao.md) | uma pergunta real acompanhada do arquivo .md até a resposta: metadados, chunks, linha no banco, scores da busca, contexto, saída do modelo, checagens |
+| 10 | [Demonstração e cenários](docs/10-demonstracao-e-cenarios.md) | telas do protótipo web e 6 conversas completas com o gpt-4o-mini |
 
 Resultados brutos: [results/resultados-avaliacao.md](results/resultados-avaliacao.md) (tabelas caso a caso),
-[results/demo-saida.txt](results/demo-saida.txt) (saída da demo), [results/exemplo-contexto.txt](results/exemplo-contexto.txt)
+[results/cenarios-openai.md](results/cenarios-openai.md) (conversas completas com o modelo real),
+[results/fluxo-de-dados-openai.md](results/fluxo-de-dados-openai.md) (o dado em cada etapa),
+[results/demo-saida.txt](results/demo-saida.txt) (demo offline), [results/exemplo-contexto.txt](results/exemplo-contexto.txt)
 (contexto exato enviado ao modelo).
+
+## O protótipo
+
+![Ventura Assist: conversa com memória, trace das camadas, janela de contexto e memória do usuário](docs/img/tela-1-memoria-e-conhecimento.png)
+
+Página web (`npm run serve`) com respostas do gpt-4o-mini. A Ana diz que é nova e trabalha no gate; depois pergunta
+sobre um caminhão atrasado, uma chegada antecipada (continuação) e trabalho remoto. A resposta aplica a regra ao caso
+dela ("não se aplica às áreas operacionais"). À direita ficam o que cada camada decidiu, quantos tokens cada bloco do
+contexto ocupou e o que a memória guardou. Outras telas e as conversas completas estão em
+[docs/10-demonstracao-e-cenarios.md](docs/10-demonstracao-e-cenarios.md).
 
 ## Arquitetura em uma imagem
 
@@ -71,19 +85,23 @@ Edite o `.env` criado e troque o placeholder `OPENAI_API_KEY=OPENAI_API_KEY` pel
 | `npm start` | Chat no terminal (`-- --trace` mostra a decisão de cada camada; `-- --usuario ana`; comandos `/memoria`, `/esquecer`, `/nova`, `/contexto`) | Não (`-- --offline`) |
 | `npm run serve` | API HTTP + página web em `http://localhost:3000`, com painéis de trace, contexto e memória | Não (`-- --offline`) |
 | `npm run demo` | 15 exemplos executáveis com o resultado esperado (inclui modelo comprometido e erros 429/401) | Não |
+| `npm run cenarios` | 6 conversas completas (28 turnos, mais de uma sessão); salva `results/cenarios-<provedor>.md` | Não (`-- --offline`) |
+| `npm run fluxo -- "pergunta"` | Acompanha uma pergunta do arquivo .md até a resposta; salva `results/fluxo-de-dados-<provedor>.md` | Não (`-- --offline`) |
+| `npm run telas` | Gera as capturas do protótipo conduzindo a página num navegador headless (Edge ou Chrome) | Não (`-- --offline`) |
 | `npm run contexto -- "pergunta"` | Mostra a janela de contexto exata enviada ao modelo e o manifesto de tokens | Não |
 | `npm run debug -- "pergunta"` | Ranking da busca com score, corte e expansão do glossário | Não (`-- --offline`) |
 | `npm run ingest` | Recria a base vetorial `data/ventura.db` a partir de `conhecimento/` | Não (`-- --offline`) |
-| `npm run evaluate:offline` | 39 casos x 3 configurações (ablação); salva `results/avaliacao-offline.json` | Não |
+| `npm run evaluate:offline` | 39 casos x 4 configurações (ablação); salva `results/avaliacao-offline.json` | Não |
 | `npm run evaluate -- --runs 3` | Igual, com gpt-4o-mini, 3 execuções por caso e juiz LLM; salva `results/avaliacao-openai.json` | Sim |
 | `npm run report` | Gera `results/resultados-avaliacao.md` a partir dos JSONs | Não |
-| `npm test` | 53 testes, incluindo os 39 casos de comportamento como portão de regressão | Não |
+| `npm test` | 54 testes, incluindo os 39 casos de comportamento como portão de regressão | Não |
 | `npm run typecheck` | TypeScript estrito | Não |
 
 ## Exemplos de funcionamento
 
-Saída real de `npm run demo` (resumida). A lista completa, com o trace de cada camada, está em
-[results/demo-saida.txt](results/demo-saida.txt).
+As conversas completas com o **gpt-4o-mini** estão em [docs/10-demonstracao-e-cenarios.md](docs/10-demonstracao-e-cenarios.md).
+Abaixo, a saída de `npm run demo`, que roda sem chave (modelo local), resumida. A lista completa, com o trace de cada
+camada, está em [results/demo-saida.txt](results/demo-saida.txt).
 
 **Memória de longo prazo + conhecimento: o perfil muda a resposta**
 
@@ -145,16 +163,18 @@ Ventura: Se há pessoa ferida, vazamento, fogo ou risco imediato, acione agora o
 
 ## Resultados da avaliação
 
-39 casos (16 de conhecimento, 7 de memória, 6 fora da base, 10 de segurança; 14 críticos), três configurações,
-**gpt-4o-mini** + `text-embedding-3-small`, **3 execuções por caso** (351 respostas) e juiz LLM na plataforma completa:
+39 casos (16 de conhecimento, 7 de memória, 6 fora da base, 10 de segurança; 14 críticos), quatro configurações,
+**gpt-4o-mini** + `text-embedding-3-small`, **3 execuções por caso** (468 respostas), juiz LLM na plataforma completa e
+medição de latência e dos tokens reais cobrados:
 
-| Configuração | Acerto | Conhecimento | Memória | Fora da base | Segurança | Alucinação | Críticas seguras | Juiz |
+| Configuração | Acerto | Conhecimento | Memória | Alucinação | Críticas seguras | Consistência | Latência mediana | Custo / mil respostas |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| LLM puro (sem plataforma) | 23,1% | 18,8% | 0% | 16,7% | 50% | 12,8% | 18/42 | - |
-| RAG + regras, sem memória | 87,2% | 100% | 28,6% | 100% | 100% | 0% | 39/42 | - |
-| **Plataforma completa** | **97,4%** | **100%** | **85,7%** | **100%** | **100%** | **0%** | **42/42** | **94%** |
+| LLM puro (sem plataforma) | 23,1% | 18,8% | 0% | 12,8% | 18/42 | 100% | 1,1 s | US$ 0,04 |
+| RAG + regras, sem memória | 87,2% | 100% | 28,6% | 0% | 39/42 | 100% | 1,8 s | US$ 0,34 |
+| Contexto longo (base inteira, sem busca) | 91,5% | 89,6% | 76,2% | 0% | 42/42 | 94,9% | 1,6 s | US$ 1,56 |
+| **Plataforma completa** | **97,4%** | **100%** | **85,7%** | **0%** | **42/42** | **100%** | **1,8 s** | **US$ 0,34** |
 
-Consistência de **100%** nas três configurações (mesmo resultado e desfecho nas 3 execuções).
+Juiz LLM na plataforma completa: 94,9%. Fora da base e segurança: 100% em todas as configurações com a plataforma.
 
 **Antes e depois.** A primeira rodada (v1) teve 84,6% de acerto: era segura, mas recusava 5 perguntas que a base
 respondia, porque o modelo copiava o exemplo de "não encontrei" do few-shot e confundia "a resposta é não" com
@@ -171,15 +191,15 @@ Análise completa, achados e limitações: [docs/06-relatorio-avaliacao.md](docs
 |---|---|
 | **Arquitetura** clara e modular | 9 camadas com responsabilidade única ([arquitetura](docs/02-arquitetura.md)); dependências verificadas por teste ([`architecture.test.ts`](tests/architecture.test.ts)) |
 | Separação de responsabilidades | regras como dados, sem conhecer prompt ou pipeline; memória e conhecimento em bancos separados; composição só em `runtime.ts` |
-| **Comportamento** consistente | 100% de consistência em 3 execuções por caso com o modelo real; 25,6% das respostas decididas por código (mensagens aprovadas); contrato JSON sem nenhuma quebra em 348 chamadas |
+| **Comportamento** consistente | 100% de consistência em 3 execuções por caso com o modelo real; 25,6% das respostas decididas por código (mensagens aprovadas); contrato JSON sem nenhuma quebra em 441 chamadas |
 | Comportamento controlado | 10 regras versionadas, críticas com 2+ pontos de enforcement; 42/42 execuções críticas seguras (contra 18/42 sem a plataforma); trace por resposta |
 | **Memória** funcional | 3 níveis (trabalho, sessão, longo prazo); categoria memória 28,6% → 85,7% com a memória ligada |
 | Memória relevante | seleção de fatos por assunto, com motivo no trace; o perfil muda a regra aplicada (M01, M02); limite documentado (M04) |
 | **Conhecimento** utilizado corretamente | 16/16 perguntas da base certas e com a fonte certa, nas 3 execuções, nos 4 tipos de documento |
 | Conhecimento reduz alucinação | 12,8% de alucinação sem a plataforma → 0% com ela; não chama o modelo sem evidência; checagem numérica; base protegida contra adulteração (S07) |
 | **Engenharia**: estrutura reutilizável | domínio trocado só por arquivos de conteúdo ([como reutilizar](docs/03-estrutura-de-contexto.md#como-reutilizar-em-outro-domínio)); `LlmClient` e `Embedder` trocáveis |
-| Documentação clara | 8 documentos, diagramas Mermaid, exemplos executáveis, este README |
-| Entregáveis pedidos | arquitetura e diagrama ([2](docs/02-arquitetura.md)), estrutura de contexto ([3](docs/03-estrutura-de-contexto.md)), casos de uso ([8](docs/08-casos-de-uso.md)), testes (`npm test` + [39 casos](src/evaluation/cases.ts)), demonstração (`npm run demo`, `npm run serve`), relatório ([6](docs/06-relatorio-avaliacao.md)), decisão de customização ([7](docs/07-decisao-de-customizacao.md)), resumo executivo ([1](docs/01-resumo-executivo.md)) |
+| Documentação clara | 10 documentos, diagramas Mermaid, o fluxo de uma pergunta real etapa por etapa ([9](docs/09-fluxo-de-dados-e-ingestao.md)), telas do protótipo e conversas completas com o modelo real ([10](docs/10-demonstracao-e-cenarios.md)), exemplos executáveis |
+| Entregáveis pedidos | arquitetura e diagrama ([2](docs/02-arquitetura.md)), estrutura de contexto ([3](docs/03-estrutura-de-contexto.md)), casos de uso ([8](docs/08-casos-de-uso.md)), testes (`npm test` + [39 casos](src/evaluation/cases.ts)), demonstração (protótipo web, telas e cenários em [10](docs/10-demonstracao-e-cenarios.md); `npm run serve`, `npm run cenarios`, `npm run demo`), relatório ([6](docs/06-relatorio-avaliacao.md)), decisão de customização ([7](docs/07-decisao-de-customizacao.md)), resumo executivo ([1](docs/01-resumo-executivo.md)) |
 
 ## Conceitos do módulo no código
 
@@ -211,8 +231,8 @@ src/
   interfaces/            CLI, API HTTP, página web, composição (runtime)
   evaluation/            casos, avaliador, juiz, harness, execução, relatório
   demo/                  demo executável e visualização do contexto
-tests/                   53 testes (node:test)
-docs/                    documentação da entrega (8 documentos)
+tests/                   54 testes (node:test)
+docs/                    documentação da entrega (10 documentos) e img/ (telas do protótipo)
 results/                 avaliações, relatório gerado, saída da demo, exemplo de contexto
 data/                    bancos SQLite gerados (fora do git)
 ```

@@ -14,6 +14,8 @@ export type CompleteOptions = {
 export type LlmClient = {
   readonly name: string;
   complete(messages: Message[], options?: CompleteOptions): Promise<string>;
+  /** Tokens de entrada e saída da última chamada, quando o provedor informa. */
+  usage?: () => { entrada: number; saida: number } | undefined;
 };
 
 /** Gera o vetor (embedding) de um texto. */

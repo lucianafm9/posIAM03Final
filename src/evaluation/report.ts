@@ -6,6 +6,7 @@ import type { EvaluationFile, ModeSummary } from "./harness.ts";
 const MODE_LABEL: Record<string, string> = {
   llm_puro: "LLM puro (sem plataforma)",
   sem_memoria: "RAG + regras, sem memória",
+  contexto_longo: "Contexto longo (toda a base, sem busca)",
   completo: "Plataforma completa",
 };
 
@@ -52,6 +53,19 @@ function caseMatrix(data: EvaluationFile): string[] {
   return lines;
 }
 
+function operationTable(data: EvaluationFile): string[] {
+  const rows = Object.entries(data.modos) as [string, { resumo: ModeSummary }][];
+  return [
+    "| Configuração | Latência mediana (com modelo) | Latência p95 | Latência sem modelo | Tokens de entrada | Tokens de saída | Custo estimado / mil respostas |",
+    "|---|---:|---:|---:|---:|---:|---:|",
+    ...rows.map(([mode, { resumo: r }]) => {
+      const o = r.operacao;
+      if (!o) return `| ${MODE_LABEL[mode] ?? mode} | - | - | - | - | - | - |`;
+      return `| ${MODE_LABEL[mode] ?? mode} | ${o.latenciaMedianaMs} ms | ${o.latenciaP95Ms} ms | ${o.latenciaSemModeloMs} ms | ${o.tokensEntradaMedios} | ${o.tokensSaidaMedios} | US$ ${o.custoPorMilRespostasUsd.toFixed(3)} |`;
+    }),
+  ];
+}
+
 function details(data: EvaluationFile): string[] {
   const full = data.modos.completo;
   if (!full) return [];
@@ -91,6 +105,12 @@ function section(title: string, data: EvaluationFile | undefined, note: string):
     "### Resumo por configuração",
     "",
     ...summaryTable(data),
+    "",
+    "### Operação (latência, tokens reais e custo)",
+    "",
+    ...operationTable(data),
+    "",
+    "Custo com o preço de tabela do gpt-4o-mini configurado em `PRICE_PER_MILLION` (harness.ts); os embeddings da busca não entram na conta (custo desprezível).",
     "",
     "### Resultado caso a caso (* = crítico)",
     "",

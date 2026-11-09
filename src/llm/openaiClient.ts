@@ -9,6 +9,7 @@ function createSdk(apiKey: string): OpenAI {
 
 export function createOpenAiClient(apiKey: string, model: string = SETTINGS.defaultModel): LlmClient {
   const client = createSdk(apiKey);
+  let lastUsage: { entrada: number; saida: number } | undefined;
 
   return {
     name: `openai:${model}`,
@@ -19,8 +20,11 @@ export function createOpenAiClient(apiKey: string, model: string = SETTINGS.defa
         temperature: options.temperature ?? SETTINGS.temperature,
         ...(options.json ? { response_format: { type: "json_object" as const } } : {}),
       });
+      // Tokens reais cobrados (o manifesto do contexto é só uma estimativa por caracteres).
+      lastUsage = response.usage ? { entrada: response.usage.prompt_tokens, saida: response.usage.completion_tokens } : undefined;
       return response.choices[0]?.message?.content ?? "";
     },
+    usage: () => lastUsage,
   };
 }
 

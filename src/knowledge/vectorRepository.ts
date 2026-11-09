@@ -82,6 +82,19 @@ export class VectorRepository {
     );
   }
 
+  /** Toda a base, na ordem dos documentos (modo "contexto longo", sem busca). */
+  all(embedder: string): RetrievedChunk[] {
+    const rows = this.db.prepare("SELECT id, doc_id, titulo, tipo, secao, chunk FROM documents WHERE embedder = ? ORDER BY id").all(embedder) as {
+      id: number;
+      doc_id: string;
+      titulo: string;
+      tipo: DocType;
+      secao: string;
+      chunk: string;
+    }[];
+    return rows.map((r) => ({ id: r.id, docId: r.doc_id, titulo: r.titulo, tipo: r.tipo, secao: r.secao, chunk: r.chunk, score: 1 }));
+  }
+
   /** Todos os chunks com score híbrido, do mais ao menos relevante (sem corte: usado pelo debug). */
   rank(query: string, queryEmbeddings: number[], embedder: string): RetrievedChunk[] {
     const rows = this.db

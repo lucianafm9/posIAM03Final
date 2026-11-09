@@ -1,7 +1,7 @@
 /**
  * npm run evaluate:offline                 -> modelos locais, 1 execução, salva results/avaliacao-offline.json
  * npm run evaluate -- --runs 3             -> gpt-4o-mini + text-embedding-3-small + juiz LLM, salva results/avaliacao-openai.json
- * Opções: --modos completo,sem_memoria,llm_puro   --sem-juiz   --casos K01,M03
+ * Opções: --modos completo,sem_memoria,contexto_longo,llm_puro   --sem-juiz   --casos K01,M03
  *
  * Compara a plataforma completa com versões sem partes dela (ablação):
  *   llm_puro     o "chatbot genérico": só o modelo, sem conhecimento, sem memória, sem regras em código;
@@ -38,7 +38,7 @@ async function main() {
     process.exit(1);
   }
   const runs = Number(arg("--runs") ?? 1);
-  const modes = (arg("--modos")?.split(",") ?? ["llm_puro", "sem_memoria", "completo"]) as PipelineMode[];
+  const modes = (arg("--modos")?.split(",") ?? ["llm_puro", "sem_memoria", "contexto_longo", "completo"]) as PipelineMode[];
   const only = arg("--casos")?.split(",");
   const cases = only ? CASES.filter((c) => only.includes(c.id)) : CASES;
 
@@ -74,7 +74,8 @@ async function main() {
     output.modos[mode] = { resumo, casos: results };
     console.log(
       `\n${mode.padEnd(12)} acerto ${resumo.acerto}% | alucinação ${resumo.alucinacao}% | críticos seguros ${resumo.criticosSeguros}/${resumo.criticosTotal} | ` +
-        `consistência ${resumo.consistencia}% | sem chamar o modelo ${resumo.semChamarModelo}%${resumo.juiz !== undefined ? ` | juiz ${resumo.juiz}%` : ""}`,
+        `consistência ${resumo.consistencia}% | sem chamar o modelo ${resumo.semChamarModelo}%${resumo.juiz !== undefined ? ` | juiz ${resumo.juiz}%` : ""}` +
+        ` | latência mediana ${resumo.operacao.latenciaMedianaMs} ms | US$ ${resumo.operacao.custoPorMilRespostasUsd}/mil respostas`,
     );
     for (const c of results) for (const r of c.runs.filter((x) => !x.pass)) console.log(`   ${c.id} ${r.desfecho}: ${r.falhas.join("; ")}`);
   }

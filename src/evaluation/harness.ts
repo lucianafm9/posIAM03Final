@@ -20,9 +20,16 @@ export type RunRecord = CaseCheck & {
   memoriaUsada: string[];
   llmChamado: boolean;
   tokens: number;
+  metricas: AnswerResult["metricas"];
   trace: string[];
   juiz?: JudgeVerdict;
 };
+
+/**
+ * Preço de tabela do gpt-4o-mini usado na estimativa de custo (US$ por 1 milhão de tokens).
+ * Conferir em platform.openai.com/pricing antes de usar o número numa decisão real.
+ */
+export const PRICE_PER_MILLION = { entrada: 0.15, saida: 0.6 };
 
 export type ModeSummary = {
   execucoes: number;
@@ -34,6 +41,16 @@ export type ModeSummary = {
   consistencia: number;
   semChamarModelo: number;
   tokensMedios: number;
+  operacao: {
+    latenciaMedianaMs: number;
+    latenciaP95Ms: number;
+    /** Latência das respostas decididas sem modelo (bloqueio, emergência, memória, sem documento). */
+    latenciaSemModeloMs: number;
+    tokensEntradaMedios: number;
+    tokensSaidaMedios: number;
+    /** Custo estimado de 1.000 respostas na mistura de perguntas da avaliação (US$). */
+    custoPorMilRespostasUsd: number;
+  };
   juiz?: number;
 };
 
@@ -83,6 +100,7 @@ export async function runCase(testCase: TestCase, deps: Deps, userId: string, st
     memoriaUsada: result.memoria.usada,
     llmChamado: result.llmChamado,
     tokens: result.contexto?.tokens ?? 0,
+    metricas: result.metricas,
     trace: result.trace.map((s) => `${s.etapa} ${s.status}${s.regra ? ` ${s.regra}` : ""}: ${s.detalhe}`),
     ...(judgeLlm ? { juiz: await judge(judgeLlm, testCase, result.resposta, evidence(result)) } : {}),
   };
@@ -100,6 +118,17 @@ export function summarize(cases: { categoria: Categoria; critico: boolean; runs:
   const consistentes = cases.filter((c) => c.runs.every((r) => r.pass === c.runs[0]!.pass && r.desfecho === c.runs[0]!.desfecho)).length;
   const judged = all.filter((r) => r.juiz);
   const called = all.filter((r) => r.tokens > 0);
+  const percentile = (values: number[], p: number) => {
+    if (values.length === 0) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    return sorted[Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length))]!;
+  };
+  const withModel = all.filter((r) => r.llmChamado);
+  const withoutModel = all.filter((r) => !r.llmChamado);
+  const sum = (f: (r: RunRecord) => number) => all.reduce((s, r) => s + f(r), 0);
+  const costPerAnswer = all.length
+    ? (sum((r) => r.metricas.tokensEntrada) * PRICE_PER_MILLION.entrada + sum((r) => r.metricas.tokensSaida) * PRICE_PER_MILLION.saida) / 1_000_000 / all.length
+    : 0;
   return {
     execucoes: all.length,
     acerto: pct(all.filter((r) => r.pass).length, all.length),
@@ -110,6 +139,14 @@ export function summarize(cases: { categoria: Categoria; critico: boolean; runs:
     consistencia: pct(consistentes, cases.length),
     semChamarModelo: pct(all.filter((r) => !r.llmChamado).length, all.length),
     tokensMedios: called.length ? Math.round(called.reduce((s, r) => s + r.tokens, 0) / called.length) : 0,
+    operacao: {
+      latenciaMedianaMs: percentile(withModel.map((r) => r.metricas.latenciaMs), 50),
+      latenciaP95Ms: percentile(withModel.map((r) => r.metricas.latenciaMs), 95),
+      latenciaSemModeloMs: percentile(withoutModel.map((r) => r.metricas.latenciaMs), 50),
+      tokensEntradaMedios: withModel.length ? Math.round(withModel.reduce((s, r) => s + r.metricas.tokensEntrada, 0) / withModel.length) : 0,
+      tokensSaidaMedios: withModel.length ? Math.round(withModel.reduce((s, r) => s + r.metricas.tokensSaida, 0) / withModel.length) : 0,
+      custoPorMilRespostasUsd: Math.round(costPerAnswer * 1000 * 1000) / 1000,
+    },
     ...(judged.length ? { juiz: pct(judged.filter((r) => r.juiz!.pass).length, judged.length) } : {}),
   };
 }
